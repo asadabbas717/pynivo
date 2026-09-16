@@ -62,3 +62,41 @@ class SystemRuntimeManager:
         if result.returncode != 0 or not version.startswith("Python "):
             raise RuntimeValidationError(f"Executable is not a valid Python runtime: {candidate}")
         return RuntimeInfo(executable=candidate, version=version.removeprefix("Python "))
+
+
+class BundledRuntimeManager(SystemRuntimeManager):
+    """Locate and validate PyNivo's private Windows CPython runtime."""
+
+    def __init__(self, application_root: Path) -> None:
+        self.runtime_root = application_root / "runtime"
+
+    def locate_runtime(self) -> Path | None:
+        executable = self.runtime_root / "python.exe"
+        return executable if executable.is_file() else None
+
+    def validate_runtime(self, executable: Path) -> RuntimeInfo:
+        if executable.resolve().parent != self.runtime_root.resolve():
+            raise RuntimeValidationError("Bundled Python must be inside PyNivo's runtime folder")
+        if not any(self.runtime_root.glob("python*.zip")):
+            raise RuntimeValidationError("Bundled Python standard library archive is missing")
+        if not any(self.runtime_root.glob("python3*.dll")):
+            raise RuntimeValidationError("Bundled Python DLL is missing")
+        if not any(self.runtime_root.glob("python*._pth")):
+            raise RuntimeValidationError("Bundled Python isolation configuration is missing")
+        return super().validate_runtime(executable)
+
+
+class RuntimeResolver:
+    """Prefer a bundled runtime, falling back to development Python when absent."""
+
+    def __init__(self, application_root: Path) -> None:
+        self.bundled = BundledRuntimeManager(application_root)
+        self.system = SystemRuntimeManager()
+
+    def locate_runtime(self) -> Path | None:
+        return self.bundled.locate_runtime() or self.system.locate_runtime()
+
+    def validate_runtime(self, executable: Path) -> RuntimeInfo:
+        bundled = self.bundled.locate_runtime()
+        manager = self.bundled if bundled and executable.resolve() == bundled.resolve() else self.system
+        return manager.validate_runtime(executable)

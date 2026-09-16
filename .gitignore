@@ -31,6 +31,10 @@ Desktop.ini
 *.log
 logs/
 recovery/
+runtime/
+packaging/runtime/*.zip
+packaging/runtime/*.exe
+packaging/runtime/*.dll
 
 # Secrets
 .env

@@ -7,8 +7,8 @@ application logic.
 
 - `pynivo.ui` owns Qt widgets and user interaction.
 - `pynivo.core.runtime` locates and validates Python runtimes. The current system-runtime
-  implementation is for development; a bundled-runtime implementation can satisfy the same
-  protocol later.
+  implementation supports development, while the resolver prefers a validated private runtime
+  stored beside the packaged application.
 - `pynivo.core.execution` describes validated child-process launches. A later QProcess service
   will consume these requests and own stdout, stderr, stdin, stopping, and process state.
 - `pynivo.core.files` performs UTF-8 document loading and atomic same-folder replacement. It does
