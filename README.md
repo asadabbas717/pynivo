@@ -19,6 +19,7 @@ not a production IDE or bundled Python distribution yet.
 - First-run welcome actions and an offline library of editable beginner examples.
 - Deterministic parsing and beginner-friendly explanations for common Python tracebacks while
   keeping the complete original traceback visible.
+- Structured offline lessons with explanations, runnable code, challenges, concepts, and hints.
 - Runtime abstraction that discovers and validates a development Python interpreter without
   hardcoding machine-specific paths.
 - Safe execution-request construction using an executable and an argument list (never a shell
@@ -26,8 +27,8 @@ not a production IDE or bundled Python distribution yet.
 - Rotating application logs that do not include learner source code.
 - Unit tests for file operations, runtime discovery, validation, and execution requests.
 
-Structured lessons and the bundled Windows runtime are planned roadmap work and are not implemented
-yet. Development runs currently use the interpreter that starts PyNivo.
+The bundled Windows runtime is planned roadmap work and is not implemented yet. Development runs
+currently use the interpreter that starts PyNivo.
 
 ## Development setup
 
@@ -93,4 +94,4 @@ decision and for a `CONTRIBUTING.md` policy in a later foundation step.
 
 Development follows the staged roadmap: editor, execution, beginner experience, error intelligence,
 learning content, bundled runtime, and finally Windows distribution. The immediate next milestone is
-deterministic beginner-friendly error explanations.
+the bundled, self-contained Windows Python runtime.

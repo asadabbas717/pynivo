@@ -8,6 +8,7 @@ class WelcomeDialog(QDialog):
     create_requested = Signal()
     open_requested = Signal()
     examples_requested = Signal()
+    learning_requested = Signal()
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -18,9 +19,11 @@ class WelcomeDialog(QDialog):
         tagline = QLabel("Python, ready when you are.\nStart coding without setup.")
         tagline.setStyleSheet("font-size: 15px;")
         create = QPushButton("Create Python File")
+        learn = QPushButton("Start Learning Python")
         examples = QPushButton("Explore Examples")
         open_file = QPushButton("Open File")
         create.clicked.connect(self.create_requested)
+        learn.clicked.connect(self.learning_requested)
         examples.clicked.connect(self.examples_requested)
         open_file.clicked.connect(self.open_requested)
         layout = QVBoxLayout(self)
@@ -30,5 +33,6 @@ class WelcomeDialog(QDialog):
         layout.addWidget(tagline)
         layout.addSpacing(12)
         layout.addWidget(create)
+        layout.addWidget(learn)
         layout.addWidget(examples)
         layout.addWidget(open_file)

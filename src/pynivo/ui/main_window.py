@@ -22,7 +22,7 @@ from pynivo.core.files import DocumentError, DocumentService
 from pynivo.core.runtime.manager import RuntimeValidationError, SystemRuntimeManager
 from pynivo.services import ProcessRunner
 from pynivo.ui.console import OutputPanel
-from pynivo.ui.dialogs import ExamplesDialog, WelcomeDialog
+from pynivo.ui.dialogs import ExamplesDialog, LessonsDialog, WelcomeDialog
 from pynivo.ui.editor import DocumentEditor
 
 LOGGER = logging.getLogger(__name__)
@@ -87,6 +87,9 @@ class MainWindow(QMainWindow):
             "Decrease Editor Font", QKeySequence("Ctrl+-"), lambda: self.change_font_size(-1)
         )
         self.examples_action = self._action("Examples", QKeySequence("Ctrl+E"), self.show_examples)
+        self.lessons_action = self._action(
+            "Start Learning", QKeySequence("Ctrl+L"), self.show_lessons
+        )
         self.welcome_action = self._action("Welcome", QKeySequence(), self.show_welcome)
 
     def _action(self, label, shortcut, callback) -> QAction:
@@ -126,7 +129,7 @@ class MainWindow(QMainWindow):
         view_menu = self.menuBar().addMenu("&View")
         view_menu.addActions([self.font_up_action, self.font_down_action])
         learn_menu = self.menuBar().addMenu("&Learn")
-        learn_menu.addActions([self.examples_action, self.welcome_action])
+        learn_menu.addActions([self.lessons_action, self.examples_action, self.welcome_action])
 
     def _build_toolbar(self) -> None:
         toolbar = QToolBar("Main toolbar", self)
@@ -137,7 +140,7 @@ class MainWindow(QMainWindow):
         toolbar.addSeparator()
         toolbar.addActions([self.run_action, self.stop_action])
         toolbar.addSeparator()
-        toolbar.addAction(self.examples_action)
+        toolbar.addActions([self.lessons_action, self.examples_action])
         self.addToolBar(toolbar)
 
     def _build_workspace(self) -> None:
@@ -329,12 +332,18 @@ class MainWindow(QMainWindow):
         dialog.example_selected.connect(lambda example: self.new_document(example.code))
         dialog.exec()
 
+    def show_lessons(self) -> None:
+        dialog = LessonsDialog(self)
+        dialog.lesson_selected.connect(lambda lesson: self.new_document(lesson.code))
+        dialog.exec()
+
     def show_welcome(self) -> None:
         self.settings.setValue("welcome/seen", True)
         dialog = WelcomeDialog(self)
         dialog.create_requested.connect(lambda: (self.new_document(), dialog.accept()))
         dialog.open_requested.connect(lambda: (dialog.accept(), self.open_document_dialog()))
         dialog.examples_requested.connect(lambda: (dialog.accept(), self.show_examples()))
+        dialog.learning_requested.connect(lambda: (dialog.accept(), self.show_lessons()))
         dialog.show()
         self.welcome_dialog = dialog
 

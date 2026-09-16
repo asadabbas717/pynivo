@@ -1,0 +1,42 @@
+[
+  {
+    "identifier": "hello_world",
+    "order": 1,
+    "title": "Hello, Python!",
+    "explanation": "The print() function shows text in the Output panel. Text inside quotes is called a string.",
+    "code": "print(\"Hello, Python!\")\n",
+    "challenge": "Change the message so Python prints something about you.",
+    "hint": "Keep your message between the quotation marks.",
+    "concepts": ["print", "strings"]
+  },
+  {
+    "identifier": "variables",
+    "order": 2,
+    "title": "Remember values",
+    "explanation": "A variable gives a value a memorable name. Python uses = to store the value on its right.",
+    "code": "favorite_food = \"pizza\"\nprint(f\"I like {favorite_food}.\")\n",
+    "challenge": "Create a second variable for your favorite color and print it.",
+    "hint": "Follow the favorite_food example, using a new variable name.",
+    "concepts": ["variables", "assignment", "f-strings"]
+  },
+  {
+    "identifier": "input",
+    "order": 3,
+    "title": "Ask a question",
+    "explanation": "input() pauses the program for an answer. PyNivo lets you type that answer below the Output panel.",
+    "code": "name = input(\"What is your name? \")\nprint(f\"Nice to meet you, {name}!\")\n",
+    "challenge": "Ask the learner for their favorite hobby and respond to it.",
+    "hint": "Store the result of a second input() call in a variable.",
+    "concepts": ["input", "variables", "f-strings"]
+  },
+  {
+    "identifier": "conditions",
+    "order": 4,
+    "title": "Make a decision",
+    "explanation": "An if statement runs indented code only when its condition is true. else handles the other case.",
+    "code": "age = int(input(\"How old are you? \"))\n\nif age >= 13:\n    print(\"You are a teenager or an adult.\")\nelse:\n    print(\"You are under 13.\")\n",
+    "challenge": "Add a special message when age is exactly 13.",
+    "hint": "Put an elif age == 13 branch between if and else.",
+    "concepts": ["conditions", "comparison", "indentation"]
+  }
+]
