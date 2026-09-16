@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
     QToolBar,
 )
 
+from pynivo.core.errors import ErrorAnalyzer
 from pynivo.core.execution import ExecutionRequest, ExecutionRequestError
 from pynivo.core.files import DocumentError, DocumentService
 from pynivo.core.runtime.manager import RuntimeValidationError, SystemRuntimeManager
@@ -38,6 +39,8 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.documents = document_service or DocumentService()
         self.runtime = SystemRuntimeManager()
+        self.error_analyzer = ErrorAnalyzer()
+        self.stderr_buffer = ""
         self.settings = QSettings()
         self.setWindowTitle("PyNivo — Python, ready when you are.")
         self.resize(1100, 720)
@@ -48,9 +51,7 @@ class MainWindow(QMainWindow):
         self._build_workspace()
         self.runner = ProcessRunner(self)
         self.runner.output_received.connect(self.output_panel.append_output)
-        self.runner.error_received.connect(
-            lambda text: self.output_panel.append_output(text, error=True)
-        )
+        self.runner.error_received.connect(self.program_error_output)
         self.runner.started.connect(self.program_started)
         self.runner.finished.connect(self.program_finished)
         self.runner.launch_failed.connect(self.program_launch_failed)
@@ -358,6 +359,7 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Could not run program", str(error))
             return
         self.output_panel.output.clear()
+        self.stderr_buffer = ""
         self.output_panel.append_output(f"Running {editor.path.name}…\n")
         if not self.runner.run(request):
             self.output_panel.append_output("A program is already running.\n", error=True)
@@ -382,8 +384,17 @@ class MainWindow(QMainWindow):
             message = "Program finished successfully."
         else:
             message = f"Program finished with exit code {exit_code}."
+            error = self.error_analyzer.analyze(self.stderr_buffer)
+            if error:
+                self.output_panel.append_output(
+                    self.error_analyzer.format_beginner_message(error), error=True
+                )
         self.output_panel.append_output(f"\n{message}\n", error=exit_code != 0 and not stopped)
         self.statusBar().showMessage(message, 5000)
+
+    def program_error_output(self, text: str) -> None:
+        self.stderr_buffer += text
+        self.output_panel.append_output(text, error=True)
 
     def program_launch_failed(self, message: str) -> None:
         self.run_action.setEnabled(True)
