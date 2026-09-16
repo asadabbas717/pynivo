@@ -3,21 +3,25 @@
 **Python, ready when you are.**
 
 PyNivo is an offline-first desktop IDE designed to remove the initial setup barrier for
-people learning Python. The current repository contains the Phase 0 application foundation,
+people learning Python. The current repository contains the Phase 1 editor foundation,
 not a production IDE or bundled Python distribution yet.
 
 ## Current state
 
-- Launchable PySide6 main-window shell with a simple beginner-oriented welcome screen.
+- Multi-tab Python editor with line numbers, highlighting, automatic indentation, current-line
+  highlighting, horizontal/vertical scrolling, undo/redo, and conventional editing shortcuts.
+- New, Open, Save, and Save As workflows with UTF-8 handling, atomic writes, dirty indicators,
+  unsaved-change prompts, `.py` filtering, and recent files.
+- Configurable editor font size and persisted window geometry.
 - Runtime abstraction that discovers and validates a development Python interpreter without
   hardcoding machine-specific paths.
 - Safe execution-request construction using an executable and an argument list (never a shell
   command string).
 - Rotating application logs that do not include learner source code.
-- Unit tests for runtime discovery, validation, and execution requests.
+- Unit tests for file operations, runtime discovery, validation, and execution requests.
 
-Editing, file management, child-process execution, lessons, and the bundled Windows runtime are
-planned roadmap work and are not implemented in this bootstrap.
+Child-process execution, the output console, error intelligence, lessons, and the bundled Windows
+runtime are planned roadmap work and are not implemented yet.
 
 ## Development setup
 
@@ -61,6 +65,7 @@ src/pynivo/
 ├── ui/main_window.py      # Qt main-window shell
 └── core/
     ├── execution/         # validated process launch descriptions
+    ├── files/             # UTF-8 loading and atomic saving
     └── runtime/           # runtime discovery and validation
 ```
 
@@ -82,5 +87,4 @@ decision and for a `CONTRIBUTING.md` policy in a later foundation step.
 
 Development follows the staged roadmap: editor, execution, beginner experience, error intelligence,
 learning content, bundled runtime, and finally Windows distribution. The immediate next milestone is
-the editor and safe file lifecycle.
-
+separate-process execution with an integrated output/input panel.
