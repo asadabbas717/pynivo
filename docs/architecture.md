@@ -14,6 +14,8 @@ application logic.
 - `pynivo.core.files` performs UTF-8 document loading and atomic same-folder replacement. It does
   not display dialogs or depend on Qt.
 - `pynivo.app` is the composition root. It starts logging, Qt, and the main window.
+- `pynivo.services.process_runner` adapts an `ExecutionRequest` to asynchronous `QProcess`
+  lifecycle signals. Learner code never enters the GUI process.
 
 Core modules do not import Qt. This keeps validation logic fast to test and prevents UI concerns
 from leaking into future runtime, file, error-analysis, and learning services.
@@ -27,6 +29,5 @@ can access anything allowed to the user's Windows account unless a separate sand
 
 ## Near-term evolution
 
-1. Add a QProcess-backed execution service using `ExecutionRequest`.
-2. Add output and input widgets without turning the panel into a general-purpose shell.
-3. Add structured error models and deterministic traceback analysis.
+1. Add the beginner welcome experience, examples, and recent-file affordances.
+2. Add structured error models and deterministic traceback analysis.

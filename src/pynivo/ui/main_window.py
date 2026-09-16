@@ -7,9 +7,20 @@ from pathlib import Path
 
 from PySide6.QtCore import QSettings, Qt
 from PySide6.QtGui import QAction, QCloseEvent, QKeySequence
-from PySide6.QtWidgets import QFileDialog, QMainWindow, QMessageBox, QTabWidget, QToolBar
+from PySide6.QtWidgets import (
+    QFileDialog,
+    QMainWindow,
+    QMessageBox,
+    QSplitter,
+    QTabWidget,
+    QToolBar,
+)
 
+from pynivo.core.execution import ExecutionRequest, ExecutionRequestError
 from pynivo.core.files import DocumentError, DocumentService
+from pynivo.core.runtime.manager import RuntimeValidationError, SystemRuntimeManager
+from pynivo.services import ProcessRunner
+from pynivo.ui.console import OutputPanel
 from pynivo.ui.editor import DocumentEditor
 
 LOGGER = logging.getLogger(__name__)
@@ -25,6 +36,7 @@ class MainWindow(QMainWindow):
     def __init__(self, document_service: DocumentService | None = None) -> None:
         super().__init__()
         self.documents = document_service or DocumentService()
+        self.runtime = SystemRuntimeManager()
         self.settings = QSettings()
         self.setWindowTitle("PyNivo — Python, ready when you are.")
         self.resize(1100, 720)
@@ -33,6 +45,15 @@ class MainWindow(QMainWindow):
         self._build_menu()
         self._build_toolbar()
         self._build_workspace()
+        self.runner = ProcessRunner(self)
+        self.runner.output_received.connect(self.output_panel.append_output)
+        self.runner.error_received.connect(
+            lambda text: self.output_panel.append_output(text, error=True)
+        )
+        self.runner.started.connect(self.program_started)
+        self.runner.finished.connect(self.program_finished)
+        self.runner.launch_failed.connect(self.program_launch_failed)
+        self.output_panel.input_submitted.connect(self.runner.write_input)
         self._restore_settings()
         self.new_document(WELCOME_CODE)
 
@@ -51,10 +72,9 @@ class MainWindow(QMainWindow):
             "Close File", QKeySequence.StandardKey.Close, self.close_current_tab
         )
         self.exit_action = self._action("Exit", QKeySequence.StandardKey.Quit, self.close)
-        self.run_action = self._action("▶ Run", QKeySequence("F5"), lambda: None)
-        self.run_action.setEnabled(False)
-        self.run_action.setToolTip("Run support arrives in the next milestone")
-        self.stop_action = self._action("■ Stop", QKeySequence("Shift+F5"), lambda: None)
+        self.run_action = self._action("▶ Run", QKeySequence("F5"), self.run_current_document)
+        self.run_action.setToolTip("Run the current Python file")
+        self.stop_action = self._action("■ Stop", QKeySequence("Shift+F5"), self.stop_program)
         self.stop_action.setEnabled(False)
         self.font_up_action = self._action(
             "Increase Editor Font", QKeySequence("Ctrl++"), lambda: self.change_font_size(1)
@@ -117,7 +137,14 @@ class MainWindow(QMainWindow):
         self.tabs.setDocumentMode(True)
         self.tabs.tabCloseRequested.connect(self.close_tab)
         self.tabs.currentChanged.connect(self.current_tab_changed)
-        self.setCentralWidget(self.tabs)
+        self.output_panel = OutputPanel(self)
+        splitter = QSplitter(Qt.Orientation.Vertical, self)
+        splitter.addWidget(self.tabs)
+        splitter.addWidget(self.output_panel)
+        splitter.setStretchFactor(0, 4)
+        splitter.setStretchFactor(1, 1)
+        splitter.setSizes([540, 180])
+        self.setCentralWidget(splitter)
 
     def new_document(self, text: str = "") -> DocumentEditor:
         editor = DocumentEditor(text=text if isinstance(text, str) else "")
@@ -215,6 +242,8 @@ class MainWindow(QMainWindow):
         return True
 
     def closeEvent(self, event: QCloseEvent) -> None:  # noqa: N802
+        if self.runner.is_running:
+            self.runner.stop()
         for index in range(self.tabs.count()):
             if not self.confirm_close(self.editor_at(index)):
                 event.ignore()
@@ -284,3 +313,57 @@ class MainWindow(QMainWindow):
     def show_file_error(self, title: str, error: DocumentError) -> None:
         LOGGER.warning("%s: %s", title, error)
         QMessageBox.critical(self, title, str(error))
+
+    def run_current_document(self) -> None:
+        if self.runner.is_running:
+            return
+        editor = self.current_editor()
+        if (
+            editor.path is None or editor.document().isModified()
+        ) and not self.save_current_document():
+            return
+        executable = self.runtime.locate_runtime()
+        if executable is None:
+            QMessageBox.critical(
+                self, "Python runtime unavailable", "PyNivo could not find Python."
+            )
+            return
+        try:
+            runtime = self.runtime.validate_runtime(executable)
+            request = ExecutionRequest.for_script(runtime.executable, editor.path)
+        except (RuntimeValidationError, ExecutionRequestError) as error:
+            QMessageBox.critical(self, "Could not run program", str(error))
+            return
+        self.output_panel.output.clear()
+        self.output_panel.append_output(f"Running {editor.path.name}…\n")
+        if not self.runner.run(request):
+            self.output_panel.append_output("A program is already running.\n", error=True)
+
+    def stop_program(self) -> None:
+        if self.runner.stop():
+            self.statusBar().showMessage("Stopping program…")
+
+    def program_started(self) -> None:
+        self.run_action.setEnabled(False)
+        self.stop_action.setEnabled(True)
+        self.output_panel.set_running(True)
+        self.statusBar().showMessage("Program running")
+
+    def program_finished(self, exit_code: int, stopped: bool) -> None:
+        self.run_action.setEnabled(True)
+        self.stop_action.setEnabled(False)
+        self.output_panel.set_running(False)
+        if stopped:
+            message = "Program stopped."
+        elif exit_code == 0:
+            message = "Program finished successfully."
+        else:
+            message = f"Program finished with exit code {exit_code}."
+        self.output_panel.append_output(f"\n{message}\n", error=exit_code != 0 and not stopped)
+        self.statusBar().showMessage(message, 5000)
+
+    def program_launch_failed(self, message: str) -> None:
+        self.run_action.setEnabled(True)
+        self.stop_action.setEnabled(False)
+        self.output_panel.set_running(False)
+        self.output_panel.append_output(f"Could not start Python: {message}\n", error=True)
