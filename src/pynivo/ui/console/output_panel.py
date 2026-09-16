@@ -3,6 +3,7 @@
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QColor, QTextCharFormat, QTextCursor
 from PySide6.QtWidgets import (
+    QFrame,
     QHBoxLayout,
     QLineEdit,
     QPlainTextEdit,
@@ -12,11 +13,14 @@ from PySide6.QtWidgets import (
 )
 
 
-class OutputPanel(QWidget):
+class OutputPanel(QFrame):
     input_submitted = Signal(str)
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
+        self.setObjectName("consoleFrame")
+        self.output_text_color = "#B9F6E5"
+        self.error_text_color = "#FF6B81"
         self.output = QPlainTextEdit(self)
         self.output.setReadOnly(True)
         self.output.setPlaceholderText("Program output appears here.")
@@ -38,7 +42,9 @@ class OutputPanel(QWidget):
         cursor = self.output.textCursor()
         cursor.movePosition(QTextCursor.MoveOperation.End)
         text_format = QTextCharFormat()
-        text_format.setForeground(QColor("#B42318" if error else "#101828"))
+        text_format.setForeground(
+            QColor(self.error_text_color if error else self.output_text_color)
+        )
         cursor.insertText(text, text_format)
         self.output.setTextCursor(cursor)
         self.output.ensureCursorVisible()
@@ -55,3 +61,7 @@ class OutputPanel(QWidget):
         self.input.clear()
         self.append_output(f"{text}\n")
         self.input_submitted.emit(text)
+
+    def set_theme(self, theme) -> None:
+        self.output_text_color = theme.output_text
+        self.error_text_color = theme.error_text

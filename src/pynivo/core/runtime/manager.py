@@ -98,5 +98,7 @@ class RuntimeResolver:
 
     def validate_runtime(self, executable: Path) -> RuntimeInfo:
         bundled = self.bundled.locate_runtime()
-        manager = self.bundled if bundled and executable.resolve() == bundled.resolve() else self.system
+        manager = (
+            self.bundled if bundled and executable.resolve() == bundled.resolve() else self.system
+        )
         return manager.validate_runtime(executable)

@@ -18,26 +18,30 @@ class PythonHighlighter(QSyntaxHighlighter):
 
     def __init__(self, document: QTextDocument) -> None:
         super().__init__(document)
+        self.set_colors(("#C792EA", "#4DD7FA", "#F9C74F", "#60788A", "#5FFFB0"))
+
+    def set_colors(self, colors: tuple[str, str, str, str, str]) -> None:
         keywords = (
             "and|as|assert|async|await|break|class|continue|def|del|elif|else|except|False|"
             "finally|for|from|global|if|import|in|is|lambda|None|nonlocal|not|or|pass|raise|"
             "return|True|try|while|with|yield"
         )
         self._rules = (
-            (QRegularExpression(rf"\b(?:{keywords})\b"), _text_format("#7455C3", bold=True)),
+            (QRegularExpression(rf"\b(?:{keywords})\b"), _text_format(colors[0], bold=True)),
             (
                 QRegularExpression(
                     r"\b(?:print|input|len|range|str|int|float|list|dict|set|tuple)\b"
                 ),
-                _text_format("#006EAA"),
+                _text_format(colors[1]),
             ),
-            (QRegularExpression(r"\b\d+(?:\.\d+)?\b"), _text_format("#B35C00")),
-            (QRegularExpression(r"#[^\n]*"), _text_format("#667085", italic=True)),
+            (QRegularExpression(r"\b\d+(?:\.\d+)?\b"), _text_format(colors[2])),
+            (QRegularExpression(r"#[^\n]*"), _text_format(colors[3], italic=True)),
             (
                 QRegularExpression(r"""(?:[rubfRUBF]{0,2})(?:"[^"\n]*"|'[^'\n]*')"""),
-                _text_format("#087A52"),
+                _text_format(colors[4]),
             ),
         )
+        self.rehighlight()
 
     def highlightBlock(self, text: str) -> None:  # noqa: N802
         for expression, text_format in self._rules:

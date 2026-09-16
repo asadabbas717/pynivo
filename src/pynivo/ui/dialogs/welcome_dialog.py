@@ -20,6 +20,7 @@ class WelcomeDialog(QDialog):
         tagline.setStyleSheet("font-size: 15px;")
         create = QPushButton("Create Python File")
         learn = QPushButton("Start Learning Python")
+        learn.setObjectName("primaryButton")
         examples = QPushButton("Explore Examples")
         open_file = QPushButton("Open File")
         create.clicked.connect(self.create_requested)

@@ -43,6 +43,7 @@ class LessonsDialog(QDialog):
             QDialogButtonBox.StandardButton.Open | QDialogButtonBox.StandardButton.Close
         )
         buttons.button(QDialogButtonBox.StandardButton.Open).setText("Try in Editor")
+        buttons.button(QDialogButtonBox.StandardButton.Open).setObjectName("primaryButton")
         buttons.accepted.connect(self._open)
         buttons.rejected.connect(self.reject)
         self.lesson_list.currentItemChanged.connect(self._update)

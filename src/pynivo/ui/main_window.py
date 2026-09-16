@@ -8,12 +8,19 @@ from pathlib import Path
 from PySide6.QtCore import QSettings, Qt, QTimer
 from PySide6.QtGui import QAction, QCloseEvent, QKeySequence
 from PySide6.QtWidgets import (
+    QApplication,
     QFileDialog,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
     QMainWindow,
     QMessageBox,
+    QPushButton,
     QSplitter,
     QTabWidget,
     QToolBar,
+    QVBoxLayout,
+    QWidget,
 )
 
 from pynivo.core.errors import ErrorAnalyzer
@@ -24,6 +31,7 @@ from pynivo.services import ProcessRunner
 from pynivo.ui.console import OutputPanel
 from pynivo.ui.dialogs import ExamplesDialog, LessonsDialog, WelcomeDialog
 from pynivo.ui.editor import DocumentEditor
+from pynivo.ui.themes import apply_theme
 
 LOGGER = logging.getLogger(__name__)
 PYTHON_FILTER = "Python files (*.py);;All files (*)"
@@ -43,6 +51,10 @@ class MainWindow(QMainWindow):
         self.error_analyzer = ErrorAnalyzer()
         self.stderr_buffer = ""
         self.settings = QSettings()
+        application = QApplication.instance()
+        if not isinstance(application, QApplication):
+            raise RuntimeError("PyNivo requires a QApplication")
+        self.theme = apply_theme(application, self.settings.value("appearance/theme", "dark"))
         self.setWindowTitle("PyNivo — Python, ready when you are.")
         self.resize(1100, 720)
         self.setMinimumSize(760, 500)
@@ -92,6 +104,11 @@ class MainWindow(QMainWindow):
             "Start Learning", QKeySequence("Ctrl+L"), self.show_lessons
         )
         self.welcome_action = self._action("Welcome", QKeySequence(), self.show_welcome)
+        self.theme_action = self._action(
+            "Switch to Light", QKeySequence("Ctrl+Shift+T"), self.toggle_theme
+        )
+        if self.theme.name == "light":
+            self.theme_action.setText("Switch to Dark")
 
     def _action(self, label, shortcut, callback) -> QAction:
         action = QAction(label, self)
@@ -128,7 +145,7 @@ class MainWindow(QMainWindow):
                 self._action(label, shortcut, lambda checked=False, name=method: self._edit(name))
             )
         view_menu = self.menuBar().addMenu("&View")
-        view_menu.addActions([self.font_up_action, self.font_down_action])
+        view_menu.addActions([self.font_up_action, self.font_down_action, self.theme_action])
         learn_menu = self.menuBar().addMenu("&Learn")
         learn_menu.addActions([self.lessons_action, self.examples_action, self.welcome_action])
 
@@ -140,6 +157,9 @@ class MainWindow(QMainWindow):
         toolbar.addActions([self.new_action, self.open_action, self.save_action])
         toolbar.addSeparator()
         toolbar.addActions([self.run_action, self.stop_action])
+        run_button = toolbar.widgetForAction(self.run_action)
+        if run_button:
+            run_button.setObjectName("primaryButton")
         toolbar.addSeparator()
         toolbar.addActions([self.lessons_action, self.examples_action])
         self.addToolBar(toolbar)
@@ -152,13 +172,51 @@ class MainWindow(QMainWindow):
         self.tabs.tabCloseRequested.connect(self.close_tab)
         self.tabs.currentChanged.connect(self.current_tab_changed)
         self.output_panel = OutputPanel(self)
+        self.output_panel.set_theme(self.theme)
         splitter = QSplitter(Qt.Orientation.Vertical, self)
         splitter.addWidget(self.tabs)
         splitter.addWidget(self.output_panel)
         splitter.setStretchFactor(0, 4)
         splitter.setStretchFactor(1, 1)
         splitter.setSizes([540, 180])
-        self.setCentralWidget(splitter)
+        rail = QFrame(self)
+        rail.setObjectName("sideRail")
+        rail.setFixedWidth(190)
+        rail_layout = QVBoxLayout(rail)
+        rail_layout.setContentsMargins(18, 22, 18, 18)
+        brand = QLabel("PYNIVO")
+        brand.setObjectName("brand")
+        tagline = QLabel("PYTHON // READY")
+        tagline.setObjectName("sectionTitle")
+        rail_layout.addWidget(brand)
+        rail_layout.addWidget(tagline)
+        rail_layout.addSpacing(28)
+        for label, action in (
+            ("01  NEW FILE", self.new_action),
+            ("02  OPEN FILE", self.open_action),
+            ("03  LEARN", self.lessons_action),
+            ("04  EXAMPLES", self.examples_action),
+        ):
+            button = self._rail_button(label, action)
+            rail_layout.addWidget(button)
+        rail_layout.addStretch()
+        mode = QLabel("LOCAL MODE  ●")
+        mode.setObjectName("sectionTitle")
+        mode.setToolTip("PyNivo works offline. Learner code runs in a child process.")
+        rail_layout.addWidget(mode)
+        container = QWidget(self)
+        layout = QHBoxLayout(container)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        layout.addWidget(rail)
+        layout.addWidget(splitter, 1)
+        self.setCentralWidget(container)
+
+    def _rail_button(self, label: str, action: QAction) -> QPushButton:
+        button = QPushButton(label)
+        button.setMinimumHeight(40)
+        button.clicked.connect(action.trigger)
+        return button
 
     def new_document(self, text: str = "") -> DocumentEditor:
         editor = DocumentEditor(text=text if isinstance(text, str) else "")
@@ -170,6 +228,7 @@ class MainWindow(QMainWindow):
         font = editor.font()
         font.setPointSize(self.font_size())
         editor.setFont(font)
+        editor.set_theme(self.theme)
         editor.title_changed.connect(lambda: self.update_editor_title(editor))
         self.tabs.setCurrentIndex(self.tabs.addTab(editor, editor.tab_title))
 
@@ -300,6 +359,17 @@ class MainWindow(QMainWindow):
             font.setPointSize(size)
             editor.setFont(font)
         self.statusBar().showMessage(f"Editor font: {size} pt", 2000)
+
+    def toggle_theme(self) -> None:
+        name = "light" if self.theme.name == "dark" else "dark"
+        application = QApplication.instance()
+        if isinstance(application, QApplication):
+            self.theme = apply_theme(application, name)
+        self.settings.setValue("appearance/theme", name)
+        self.theme_action.setText("Switch to Dark" if name == "light" else "Switch to Light")
+        self.output_panel.set_theme(self.theme)
+        for index in range(self.tabs.count()):
+            self.editor_at(index).set_theme(self.theme)
 
     def _restore_settings(self) -> None:
         geometry = self.settings.value("window/geometry")

@@ -38,5 +38,103 @@
     "challenge": "Add a special message when age is exactly 13.",
     "hint": "Put an elif age == 13 branch between if and else.",
     "concepts": ["conditions", "comparison", "indentation"]
+  },
+  {
+    "identifier": "loops", "order": 5, "title": "Repeat with loops",
+    "explanation": "for loops repeat code for each value; while loops continue while a condition remains true.",
+    "code": "for number in range(1, 6):\n    print(number)\n",
+    "challenge": "Print only the even numbers from 2 through 10.", "hint": "Use range(2, 11, 2).",
+    "concepts": ["for", "while", "range"]
+  },
+  {
+    "identifier": "lists", "order": 6, "title": "Organize with lists",
+    "explanation": "Lists keep ordered collections that can grow, shrink, and be changed.",
+    "code": "tasks = [\"learn lists\", \"write code\"]\ntasks.append(\"run program\")\nfor task in tasks:\n    print(task)\n",
+    "challenge": "Remove one task and print how many remain.", "hint": "Try remove() and len().",
+    "concepts": ["lists", "append", "iteration"]
+  },
+  {
+    "identifier": "tuples", "order": 7, "title": "Fixed collections",
+    "explanation": "Tuples are ordered collections whose items cannot be replaced after creation.",
+    "code": "point = (4, 7)\nx, y = point\nprint(f\"x={x}, y={y}\")\n",
+    "challenge": "Create an RGB color tuple and unpack it.", "hint": "A tuple uses commas: red, green, blue = (255, 80, 20).",
+    "concepts": ["tuples", "unpacking"]
+  },
+  {
+    "identifier": "dictionaries", "order": 8, "title": "Label data with dictionaries",
+    "explanation": "Dictionaries connect unique keys to values, making related data easy to find.",
+    "code": "learner = {\"name\": \"Ada\", \"level\": 1}\nlearner[\"level\"] += 1\nprint(learner[\"name\"], learner[\"level\"])\n",
+    "challenge": "Add a language key and display it.", "hint": "Assign learner[\"language\"] = \"Python\".",
+    "concepts": ["dictionaries", "keys", "values"]
+  },
+  {
+    "identifier": "sets", "order": 9, "title": "Keep unique values",
+    "explanation": "Sets store unique items and make membership and overlap checks concise.",
+    "code": "skills = {\"loops\", \"lists\", \"loops\"}\nskills.add(\"functions\")\nprint(skills)\n",
+    "challenge": "Find the shared values in two sets.", "hint": "Use first & second.",
+    "concepts": ["sets", "uniqueness", "membership"]
+  },
+  {
+    "identifier": "functions", "order": 10, "title": "Build reusable functions",
+    "explanation": "Functions name a reusable block of work. Parameters receive values and return sends a result back.",
+    "code": "def area(width, height):\n    return width * height\n\nprint(area(5, 3))\n",
+    "challenge": "Write a function that converts minutes to seconds.", "hint": "Return minutes * 60.",
+    "concepts": ["functions", "parameters", "return"]
+  },
+  {
+    "identifier": "modules", "order": 11, "title": "Use modules",
+    "explanation": "Modules organize reusable code. Python's standard library is available offline.",
+    "code": "import random\n\nsecret = random.randint(1, 10)\nprint(f\"Secret number: {secret}\")\n",
+    "challenge": "Simulate rolling a six-sided die.", "hint": "Use random.randint(1, 6).",
+    "concepts": ["modules", "import", "standard library"]
+  },
+  {
+    "identifier": "files", "order": 12, "title": "Read and write files",
+    "explanation": "with safely closes a file after reading or writing. Encoding keeps text predictable.",
+    "code": "from pathlib import Path\n\npath = Path(\"message.txt\")\npath.write_text(\"Hello from Python!\", encoding=\"utf-8\")\nprint(path.read_text(encoding=\"utf-8\"))\n",
+    "challenge": "Write three lines to a file and read them back.", "hint": "Separate lines with \\n.",
+    "concepts": ["files", "pathlib", "encoding"]
+  },
+  {
+    "identifier": "exceptions", "order": 13, "title": "Handle errors",
+    "explanation": "try and except let a program respond to expected problems without crashing.",
+    "code": "try:\n    number = int(input(\"Enter a whole number: \"))\n    print(10 / number)\nexcept ValueError:\n    print(\"That was not a whole number.\")\nexcept ZeroDivisionError:\n    print(\"Zero cannot be used here.\")\n",
+    "challenge": "Add a finally block that always says Goodbye.", "hint": "finally belongs after the except blocks.",
+    "concepts": ["exceptions", "try", "except"]
+  },
+  {
+    "identifier": "comprehensions", "order": 14, "title": "Transform collections",
+    "explanation": "A comprehension builds a collection from another iterable in one readable expression.",
+    "code": "squares = [number ** 2 for number in range(1, 6)]\nprint(squares)\n",
+    "challenge": "Create a list containing only even squares.", "hint": "Add if number % 2 == 0.",
+    "concepts": ["comprehensions", "filtering"]
+  },
+  {
+    "identifier": "classes", "order": 15, "title": "Create your own objects",
+    "explanation": "A class describes data and behavior that belong together. Each instance is a separate object.",
+    "code": "class Pet:\n    def __init__(self, name):\n        self.name = name\n\n    def greet(self):\n        print(f\"{self.name} says hello!\")\n\nPet(\"Nivo\").greet()\n",
+    "challenge": "Add an age attribute and a birthday method.", "hint": "Increase self.age inside birthday().",
+    "concepts": ["classes", "objects", "methods"]
+  },
+  {
+    "identifier": "oop", "order": 16, "title": "Extend classes",
+    "explanation": "Inheritance lets a specialized class reuse and adapt behavior from a parent class.",
+    "code": "class Animal:\n    def speak(self):\n        print(\"Some sound\")\n\nclass Cat(Animal):\n    def speak(self):\n        print(\"Meow\")\n\nCat().speak()\n",
+    "challenge": "Create a Dog subclass with its own sound.", "hint": "Override speak() in Dog.",
+    "concepts": ["inheritance", "overriding", "polymorphism"]
+  },
+  {
+    "identifier": "testing", "order": 17, "title": "Check your code",
+    "explanation": "Assertions document expectations and reveal mistakes early. Larger projects use test frameworks such as pytest.",
+    "code": "def add(left, right):\n    return left + right\n\nassert add(2, 3) == 5\nprint(\"All checks passed!\")\n",
+    "challenge": "Add checks for negative numbers and zero.", "hint": "Write more assert statements.",
+    "concepts": ["testing", "assertions"]
+  },
+  {
+    "identifier": "mini_project", "order": 18, "title": "Build a quiz game",
+    "explanation": "This project combines input, collections, loops, conditions, and score tracking.",
+    "code": "questions = [(\"Python files end with? \", \".py\"), (\"2 + 2? \", \"4\")]\nscore = 0\n\nfor question, answer in questions:\n    if input(question).strip().lower() == answer:\n        score += 1\n\nprint(f\"Score: {score}/{len(questions)}\")\n",
+    "challenge": "Add two questions and show encouraging feedback.", "hint": "Append more (question, answer) tuples.",
+    "concepts": ["project", "input", "loops", "conditions"]
   }
 ]

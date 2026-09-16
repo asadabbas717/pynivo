@@ -20,6 +20,10 @@ not a production IDE or bundled Python distribution yet.
 - Deterministic parsing and beginner-friendly explanations for common Python tracebacks while
   keeping the complete original traceback visible.
 - Structured offline lessons with explanations, runnable code, challenges, concepts, and hints.
+- A complete 18-lesson beginner course covering Python fundamentals through files, exceptions,
+  classes, testing, and a final project.
+- Persistent cinematic dark and high-contrast light themes with a branded navigation rail and
+  theme-aware editor, syntax, console, dialogs, and controls.
 - Bundled-runtime discovery and validation compatible with an official Windows CPython embeddable
   distribution, with development-interpreter fallback when no bundle is present.
 - Runtime abstraction that discovers and validates a development Python interpreter without
@@ -96,4 +100,4 @@ decision and for a `CONTRIBUTING.md` policy in a later foundation step.
 
 Development follows the staged roadmap: editor, execution, beginner experience, error intelligence,
 learning content, bundled runtime, and finally Windows distribution. The immediate next milestone is
-Windows packaging, installer creation, and clean-machine release testing.
+user approval of the refreshed interface and course, followed by Windows packaging.

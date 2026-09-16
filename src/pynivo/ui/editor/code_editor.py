@@ -7,6 +7,7 @@ from PySide6.QtGui import QColor, QFontDatabase, QKeyEvent, QPainter, QPaintEven
 from PySide6.QtWidgets import QPlainTextEdit, QTextEdit, QWidget
 
 from pynivo.ui.editor.highlighter import PythonHighlighter
+from pynivo.ui.themes import DARK, Theme
 
 
 class LineNumberArea(QWidget):
@@ -30,6 +31,7 @@ class CodeEditor(QPlainTextEdit):
         super().__init__(parent)
         self.line_numbers = LineNumberArea(self)
         self.highlighter = PythonHighlighter(self.document())
+        self.theme = DARK
         self.setLineWrapMode(QPlainTextEdit.LineWrapMode.NoWrap)
         self.setTabChangesFocus(False)
         font = QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont)
@@ -65,12 +67,12 @@ class CodeEditor(QPlainTextEdit):
 
     def paint_line_numbers(self, event: QPaintEvent) -> None:
         painter = QPainter(self.line_numbers)
-        painter.fillRect(event.rect(), QColor("#F2F4F7"))
+        painter.fillRect(event.rect(), QColor(self.theme.gutter_background))
         block = self.firstVisibleBlock()
         number = block.blockNumber()
         top = round(self.blockBoundingGeometry(block).translated(self.contentOffset()).top())
         bottom = top + round(self.blockBoundingRect(block).height())
-        painter.setPen(QColor("#667085"))
+        painter.setPen(QColor(self.theme.gutter_text))
         while block.isValid() and top <= event.rect().bottom():
             if block.isVisible() and bottom >= event.rect().top():
                 painter.drawText(
@@ -88,11 +90,17 @@ class CodeEditor(QPlainTextEdit):
 
     def _highlight_current_line(self) -> None:
         selection = QTextEdit.ExtraSelection()
-        selection.format.setBackground(QColor("#F7F8FC"))
+        selection.format.setBackground(QColor(self.theme.current_line))
         selection.format.setProperty(QTextFormat.Property.FullWidthSelection, True)
         selection.cursor = self.textCursor()
         selection.cursor.clearSelection()
         self.setExtraSelections([selection])
+
+    def set_theme(self, theme: Theme) -> None:
+        self.theme = theme
+        self.highlighter.set_colors(theme.syntax)
+        self.line_numbers.update()
+        self._highlight_current_line()
 
     def keyPressEvent(self, event: QKeyEvent) -> None:  # noqa: N802
         if event.key() == Qt.Key.Key_Tab and not event.modifiers():
