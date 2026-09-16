@@ -31,23 +31,23 @@ DARK = Theme(
 )
 LIGHT = Theme(
     "light",
-    "#F7FAFC",
-    "#E8EEF3",
-    "#617080",
-    "#E8F7F3",
-    "#18323B",
-    "#C92A45",
-    ("#6E3CBC", "#006C8F", "#A35D00", "#718096", "#087F5B"),
+    "#E9EEF0",
+    "#DCE4E7",
+    "#52666E",
+    "#D8E8E4",
+    "#173B3B",
+    "#A61B3B",
+    ("#6037A3", "#005F7A", "#8A4D00", "#5B7078", "#087458"),
 )
 
 
 def stylesheet(theme: Theme) -> str:
     dark = theme.name == "dark"
     bg, panel, raised = (
-        ("#070A0E", "#0C1118", "#111923") if dark else ("#EDF2F5", "#F8FAFB", "#FFFFFF")
+        ("#070A0E", "#0C1118", "#111923") if dark else ("#D3DDE0", "#DFE6E8", "#EDF1F2")
     )
     text, muted, border = (
-        ("#D6E7E3", "#718A92", "#1D3038") if dark else ("#172B33", "#65767D", "#CBD7DC")
+        ("#D6E7E3", "#718A92", "#1D3038") if dark else ("#14282F", "#536970", "#AEBEC3")
     )
     return f"""
     QMainWindow, QDialog {{ background: {bg}; color: {text}; }}
@@ -60,6 +60,7 @@ def stylesheet(theme: Theme) -> str:
     QToolButton:hover {{ background: #00BFA522; color: #21E6C1; }}
     QToolButton:disabled {{ color: {muted}; }}
     QTabWidget::pane {{ border: 1px solid {border}; background: {theme.editor_background}; }}
+    QTabBar {{ background: {panel}; }}
     QTabBar::tab {{ background: {panel}; color: {muted}; padding: 9px 18px; border-right: 1px solid {border}; }}
     QTabBar::tab:selected {{ background: {theme.editor_background}; color: #21E6C1; border-top: 2px solid #21E6C1; }}
     QPlainTextEdit {{ background: {theme.editor_background}; color: {text}; border: 0; selection-background-color: #007F6F; }}

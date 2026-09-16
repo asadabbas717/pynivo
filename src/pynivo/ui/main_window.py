@@ -438,7 +438,7 @@ class MainWindow(QMainWindow):
         except (RuntimeValidationError, ExecutionRequestError) as error:
             QMessageBox.critical(self, "Could not run program", str(error))
             return
-        self.output_panel.output.clear()
+        self.output_panel.clear_output()
         self.stderr_buffer = ""
         self.output_panel.append_output(f"Running {editor.path.name}…\n")
         if not self.runner.run(request):
