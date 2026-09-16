@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from PySide6.QtCore import QSettings, Qt
+from PySide6.QtCore import QSettings, Qt, QTimer
 from PySide6.QtGui import QAction, QCloseEvent, QKeySequence
 from PySide6.QtWidgets import (
     QFileDialog,
@@ -21,6 +21,7 @@ from pynivo.core.files import DocumentError, DocumentService
 from pynivo.core.runtime.manager import RuntimeValidationError, SystemRuntimeManager
 from pynivo.services import ProcessRunner
 from pynivo.ui.console import OutputPanel
+from pynivo.ui.dialogs import ExamplesDialog, WelcomeDialog
 from pynivo.ui.editor import DocumentEditor
 
 LOGGER = logging.getLogger(__name__)
@@ -56,6 +57,8 @@ class MainWindow(QMainWindow):
         self.output_panel.input_submitted.connect(self.runner.write_input)
         self._restore_settings()
         self.new_document(WELCOME_CODE)
+        if not self.settings.value("welcome/seen", False, bool):
+            QTimer.singleShot(0, self.show_welcome)
 
     def _build_actions(self) -> None:
         self.new_action = self._action("New", QKeySequence.StandardKey.New, self.new_document)
@@ -82,6 +85,8 @@ class MainWindow(QMainWindow):
         self.font_down_action = self._action(
             "Decrease Editor Font", QKeySequence("Ctrl+-"), lambda: self.change_font_size(-1)
         )
+        self.examples_action = self._action("Examples", QKeySequence("Ctrl+E"), self.show_examples)
+        self.welcome_action = self._action("Welcome", QKeySequence(), self.show_welcome)
 
     def _action(self, label, shortcut, callback) -> QAction:
         action = QAction(label, self)
@@ -119,6 +124,8 @@ class MainWindow(QMainWindow):
             )
         view_menu = self.menuBar().addMenu("&View")
         view_menu.addActions([self.font_up_action, self.font_down_action])
+        learn_menu = self.menuBar().addMenu("&Learn")
+        learn_menu.addActions([self.examples_action, self.welcome_action])
 
     def _build_toolbar(self) -> None:
         toolbar = QToolBar("Main toolbar", self)
@@ -128,6 +135,8 @@ class MainWindow(QMainWindow):
         toolbar.addActions([self.new_action, self.open_action, self.save_action])
         toolbar.addSeparator()
         toolbar.addActions([self.run_action, self.stop_action])
+        toolbar.addSeparator()
+        toolbar.addAction(self.examples_action)
         self.addToolBar(toolbar)
 
     def _build_workspace(self) -> None:
@@ -313,6 +322,20 @@ class MainWindow(QMainWindow):
     def show_file_error(self, title: str, error: DocumentError) -> None:
         LOGGER.warning("%s: %s", title, error)
         QMessageBox.critical(self, title, str(error))
+
+    def show_examples(self) -> None:
+        dialog = ExamplesDialog(self)
+        dialog.example_selected.connect(lambda example: self.new_document(example.code))
+        dialog.exec()
+
+    def show_welcome(self) -> None:
+        self.settings.setValue("welcome/seen", True)
+        dialog = WelcomeDialog(self)
+        dialog.create_requested.connect(lambda: (self.new_document(), dialog.accept()))
+        dialog.open_requested.connect(lambda: (dialog.accept(), self.open_document_dialog()))
+        dialog.examples_requested.connect(lambda: (dialog.accept(), self.show_examples()))
+        dialog.show()
+        self.welcome_dialog = dialog
 
     def run_current_document(self) -> None:
         if self.runner.is_running:

@@ -16,6 +16,7 @@ not a production IDE or bundled Python distribution yet.
 - Separate-process Python execution with streamed stdout/stderr, keyboard input for `input()`,
   exit status, duplicate-run prevention, and Stop with a forced-kill fallback.
 - Integrated output panel with visually distinct errors and a clear action.
+- First-run welcome actions and an offline library of editable beginner examples.
 - Runtime abstraction that discovers and validates a development Python interpreter without
   hardcoding machine-specific paths.
 - Safe execution-request construction using an executable and an argument list (never a shell
@@ -23,7 +24,7 @@ not a production IDE or bundled Python distribution yet.
 - Rotating application logs that do not include learner source code.
 - Unit tests for file operations, runtime discovery, validation, and execution requests.
 
-Error intelligence, lessons, and the bundled Windows runtime are planned roadmap work and are not
+Error intelligence, structured lessons, and the bundled Windows runtime are planned roadmap work and are not
 implemented yet. Development runs currently use the interpreter that starts PyNivo.
 
 ## Development setup
@@ -90,4 +91,4 @@ decision and for a `CONTRIBUTING.md` policy in a later foundation step.
 
 Development follows the staged roadmap: editor, execution, beginner experience, error intelligence,
 learning content, bundled runtime, and finally Windows distribution. The immediate next milestone is
-the beginner welcome experience and offline examples.
+deterministic beginner-friendly error explanations.

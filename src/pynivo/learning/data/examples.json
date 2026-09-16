@@ -1,0 +1,30 @@
+[
+  {
+    "identifier": "hello_name",
+    "title": "Say hello",
+    "category": "Basics",
+    "description": "Ask for a name and print a friendly greeting.",
+    "code": "name = input(\"What's your name? \")\nprint(f\"Hello, {name}!\")\n"
+  },
+  {
+    "identifier": "counting_loop",
+    "title": "Count with a loop",
+    "category": "Loops",
+    "description": "Repeat an action with a for loop and range().",
+    "code": "for number in range(1, 6):\n    print(number)\n"
+  },
+  {
+    "identifier": "favorite_colors",
+    "title": "Work with a list",
+    "category": "Lists",
+    "description": "Store several values and visit each one.",
+    "code": "colors = [\"blue\", \"green\", \"purple\"]\n\nfor color in colors:\n    print(f\"I like {color}.\")\n"
+  },
+  {
+    "identifier": "temperature_converter",
+    "title": "Convert temperature",
+    "category": "Mini programs",
+    "description": "Read a number, calculate with it, and format the result.",
+    "code": "celsius = float(input(\"Temperature in °C: \"))\nfahrenheit = celsius * 9 / 5 + 32\nprint(f\"{celsius}°C is {fahrenheit:.1f}°F\")\n"
+  }
+]
