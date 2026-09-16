@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+*.egg-info/
+.pytest_cache/
+.pytest-tmp/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Environments
+.venv/
+venv/
+env/
+
+# Build and packaging
+build/
+dist/
+*.spec
+
+# Editors and operating systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# PyNivo local state
+*.log
+logs/
+recovery/
+
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
