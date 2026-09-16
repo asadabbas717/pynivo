@@ -16,5 +16,7 @@ def test_themes_have_distinct_accessible_surfaces() -> None:
     assert LIGHT.output_text != LIGHT.editor_background
     assert "QToolBar#main_toolbar" in stylesheet(DARK)
     assert "QFrame#sideRail" in stylesheet(LIGHT)
+    assert "QListWidget, QListView, QTreeWidget, QTableWidget" in stylesheet(LIGHT)
+    assert "QAbstractItemView::item:selected" in stylesheet(DARK)
     assert luminance(LIGHT.editor_background) < 0.85
     assert abs(luminance(LIGHT.editor_background) - luminance(LIGHT.output_text)) > 0.65

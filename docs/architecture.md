@@ -8,6 +8,8 @@ application logic.
 - `pynivo.ui` owns Qt widgets and user interaction.
 - `pynivo.ui.themes` centralizes the complete application palette and QSS for persistent light and
   dark modes; editor token and console colors derive from the same theme model.
+  Every new screen must use shared Qt widgets and palette roles from this module; dialogs must not
+  introduce local hard-coded colors. Theme QA covers the main window and each top-level dialog.
 - `pynivo.core.runtime` locates and validates Python runtimes. The current system-runtime
   implementation supports development, while the resolver prefers a validated private runtime
   stored beside the packaged application.
