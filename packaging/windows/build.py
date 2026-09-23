@@ -74,6 +74,8 @@ def build(project_root: Path, *, skip_runtime: bool) -> Path:
     shutil.copy2(project_root / "LICENSE", distribution)
     shutil.copy2(project_root / "LICENSE_NOTICE.txt", distribution)
     shutil.copy2(project_root / "NOTICE", distribution)
+    shutil.copy2(project_root / "QT_LGPL_COMPLIANCE.md", distribution)
+    shutil.copytree(project_root / "licenses", distribution / "licenses", dirs_exist_ok=True)
     verify_distribution(distribution, expect_runtime=not skip_runtime)
     return distribution
 
@@ -82,9 +84,18 @@ def verify_distribution(distribution: Path, *, expect_runtime: bool) -> None:
     executable = distribution / "PyNivo.exe"
     if not executable.is_file():
         raise RuntimeError("PyNivo.exe was not created")
-    for notice in ("LICENSE", "LICENSE_NOTICE.txt", "NOTICE", "THIRD_PARTY_NOTICES.md"):
+    for notice in (
+        "LICENSE",
+        "LICENSE_NOTICE.txt",
+        "NOTICE",
+        "QT_LGPL_COMPLIANCE.md",
+        "THIRD_PARTY_NOTICES.md",
+    ):
         if not (distribution / notice).is_file():
             raise RuntimeError(f"Distribution notice is missing: {notice}")
+    for license_name in ("GPL-3.0-only.txt", "LGPL-3.0-only.txt"):
+        if not (distribution / "licenses" / license_name).is_file():
+            raise RuntimeError(f"Third-party license is missing: {license_name}")
     if expect_runtime:
         runtime = distribution / "runtime" / "python.exe"
         license_file = distribution / "runtime" / "LICENSE.txt"

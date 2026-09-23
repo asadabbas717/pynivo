@@ -112,15 +112,20 @@ available to the user's account.
 
 ## Dependency and licensing note
 
-The runtime UI dependency is Qt for Python (PySide6). PySide6 is offered under LGPLv3/GPLv3 and
-commercial terms. Before distributing PyNivo, the project must document and satisfy the applicable
-Qt, CPython, and bundled third-party notice and redistribution requirements. No paid service,
-account, telemetry SDK, or network backend is required.
+The runtime UI dependency is Qt for Python (PySide6), distributed with PyNivo under LGPLv3.
+The release bundle includes the applicable license texts, corresponding-source information, and
+library-replacement instructions. No paid service, account, telemetry SDK, or network backend is
+required.
 
 PyNivo is licensed under the Apache License 2.0. Copyright 2026 Asad Abbas. Bundled dependencies
 remain subject to their respective licenses; see `THIRD_PARTY_NOTICES.md`.
 
 ## License
+
+PyNivo is Copyright 2026 Asad Abbas and licensed under Apache License 2.0.
+The Windows distribution includes unmodified Qt/PySide6 libraries under
+LGPLv3; see [QT_LGPL_COMPLIANCE.md](QT_LGPL_COMPLIANCE.md) for the corresponding
+source and library-replacement instructions.
 
 PyNivo source code is available under the [Apache License 2.0](LICENSE). See [NOTICE](NOTICE) for
 copyright attribution and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for bundled components.
@@ -128,5 +133,5 @@ copyright attribution and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for b
 ## Roadmap
 
 Development follows the staged roadmap: editor, execution, beginner experience, error intelligence,
-learning content, bundled runtime, and finally Windows distribution. The current milestone is
-portable-build validation, followed by installer creation and clean-machine testing.
+learning content, bundled runtime, and Windows distribution. The current milestone is a signed V1
+release candidate.

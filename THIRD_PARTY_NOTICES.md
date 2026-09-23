@@ -14,9 +14,10 @@ The runtime's `LICENSE.txt` is included unchanged inside the `runtime` directory
 
 ## Qt for Python / PySide6
 
-PyNivo uses Qt for Python (PySide6), available under LGPLv3, GPLv3, and commercial licensing terms.
-The portable distribution must preserve the license files installed with the PySide6 wheel and
-comply with the selected license before public release.
+PyNivo includes the unmodified Qt for Python (PySide6), Shiboken6, and Qt 6.11.2 libraries under
+the GNU Lesser General Public License version 3. The libraries are dynamically loaded and may be
+replaced with compatible builds. See `QT_LGPL_COMPLIANCE.md` for source locations, checksums, and
+replacement instructions. The complete LGPLv3 and incorporated GPLv3 terms are in `licenses`.
 
 ## PyInstaller
 
