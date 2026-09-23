@@ -117,8 +117,13 @@ commercial terms. Before distributing PyNivo, the project must document and sati
 Qt, CPython, and bundled third-party notice and redistribution requirements. No paid service,
 account, telemetry SDK, or network backend is required.
 
-The PyNivo project's own license has not yet been selected. Contributions should wait for that
-decision and for a `CONTRIBUTING.md` policy in a later foundation step.
+PyNivo is licensed under the Apache License 2.0. Copyright 2026 Asad Abbas. Bundled dependencies
+remain subject to their respective licenses; see `THIRD_PARTY_NOTICES.md`.
+
+## License
+
+PyNivo source code is available under the [Apache License 2.0](LICENSE). See [NOTICE](NOTICE) for
+copyright attribution and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for bundled components.
 
 ## Roadmap
 

@@ -22,6 +22,7 @@ MinVersion=10.0
 OutputDir=..\..\dist\installer
 OutputBaseFilename=PyNivo-{#AppVersion}-Preview-Setup-x64
 SetupIconFile=..\..\resources\branding\pynivo.ico
+LicenseFile=..\..\LICENSE
 UninstallDisplayIcon={app}\{#AppExeName}
 Compression=lzma2/max
 SolidCompression=yes

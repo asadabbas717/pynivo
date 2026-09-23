@@ -31,6 +31,5 @@ pytest
 - Do not log learner source code or secrets.
 - Add tests for behavior and update documentation when user-visible behavior changes.
 
-The project license is not yet selected, so contribution and redistribution terms must be resolved
-before accepting external contributions or publishing a release.
-
+By submitting a contribution, you agree that it may be distributed under the project's Apache
+License 2.0. Contributors retain copyright in their contributions.

@@ -70,6 +70,8 @@ def build(project_root: Path, *, skip_runtime: bool) -> Path:
         archive = verified_runtime_archive(project_root / "build" / "downloads")
         safe_extract(archive, runtime)
     shutil.copy2(project_root / "THIRD_PARTY_NOTICES.md", distribution)
+    shutil.copy2(project_root / "LICENSE", distribution)
+    shutil.copy2(project_root / "NOTICE", distribution)
     verify_distribution(distribution, expect_runtime=not skip_runtime)
     return distribution
 

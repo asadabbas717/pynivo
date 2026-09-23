@@ -3,6 +3,9 @@
 PyNivo distributions include components maintained by other projects. This file is informational;
 the complete corresponding license texts must remain in the distributed application.
 
+PyNivo itself is licensed under the Apache License 2.0. See `LICENSE` and `NOTICE` in the
+application directory.
+
 ## Python
 
 The private learner runtime is the official CPython Windows embeddable distribution. Python is
