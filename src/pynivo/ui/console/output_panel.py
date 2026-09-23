@@ -12,6 +12,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from pynivo.core.execution import OutputBuffer
+
 
 class OutputPanel(QFrame):
     input_submitted = Signal(str)
@@ -21,7 +23,7 @@ class OutputPanel(QFrame):
         self.setObjectName("consoleFrame")
         self.output_text_color = "#B9F6E5"
         self.error_text_color = "#FF6B81"
-        self._entries: list[tuple[str, bool]] = []
+        self.buffer = OutputBuffer()
         self.output = QPlainTextEdit(self)
         self.output.setReadOnly(True)
         self.output.setPlaceholderText("Program output appears here.")
@@ -40,8 +42,11 @@ class OutputPanel(QFrame):
         layout.addLayout(input_row)
 
     def append_output(self, text: str, *, error: bool = False) -> None:
-        self._entries.append((text, error))
-        self._append_formatted(text, error)
+        truncated = self.buffer.append(text, error)
+        if truncated:
+            self._render_buffer()
+        else:
+            self._append_formatted(text, error)
 
     def _append_formatted(self, text: str, error: bool) -> None:
         cursor = self.output.textCursor()
@@ -70,10 +75,18 @@ class OutputPanel(QFrame):
     def set_theme(self, theme) -> None:
         self.output_text_color = theme.output_text
         self.error_text_color = theme.error_text
+        self._render_buffer()
+
+    def _render_buffer(self) -> None:
         self.output.clear()
-        for text, error in self._entries:
-            self._append_formatted(text, error)
+        chunks = self.buffer.chunks()
+        if self.buffer.was_truncated:
+            self._append_formatted(
+                "[Earlier output was trimmed to keep PyNivo responsive.]\n", False
+            )
+        for chunk in chunks:
+            self._append_formatted(chunk.text, chunk.error)
 
     def clear_output(self) -> None:
-        self._entries.clear()
+        self.buffer.clear()
         self.output.clear()

@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from PySide6.QtCore import QSettings, Qt, QTimer
+from PySide6.QtCore import QSettings, QStandardPaths, Qt, QTimer
 from PySide6.QtGui import QAction, QCloseEvent, QKeySequence, QTextCursor
 from PySide6.QtWidgets import (
     QApplication,
@@ -25,7 +25,7 @@ from PySide6.QtWidgets import (
 
 from pynivo.core.errors import ErrorAnalyzer
 from pynivo.core.execution import ExecutionRequest, ExecutionRequestError
-from pynivo.core.files import DocumentError, DocumentService
+from pynivo.core.files import DocumentError, DocumentService, RecoveryDocument, RecoveryService
 from pynivo.core.runtime.manager import RuntimeResolver, RuntimeValidationError
 from pynivo.services import ProcessRunner
 from pynivo.ui.console import OutputPanel
@@ -51,6 +51,15 @@ class MainWindow(QMainWindow):
         self.error_analyzer = ErrorAnalyzer()
         self.stderr_buffer = ""
         self.settings = QSettings()
+        recovery_root = (
+            Path(
+                QStandardPaths.writableLocation(
+                    QStandardPaths.StandardLocation.AppLocalDataLocation
+                )
+            )
+            / "recovery"
+        )
+        self.recovery = RecoveryService(recovery_root)
         application = QApplication.instance()
         if not isinstance(application, QApplication):
             raise RuntimeError("PyNivo requires a QApplication")
@@ -70,7 +79,12 @@ class MainWindow(QMainWindow):
         self.runner.launch_failed.connect(self.program_launch_failed)
         self.output_panel.input_submitted.connect(self.runner.write_input)
         self._restore_settings()
-        self.new_document(WELCOME_CODE)
+        if not self.restore_recovery_session():
+            self.new_document(WELCOME_CODE)
+        self.recovery_timer = QTimer(self)
+        self.recovery_timer.setInterval(15_000)
+        self.recovery_timer.timeout.connect(self.snapshot_recovery)
+        self.recovery_timer.start()
         if not self.settings.value("welcome/seen", False, bool):
             QTimer.singleShot(0, self.show_welcome)
 
@@ -322,6 +336,7 @@ class MainWindow(QMainWindow):
                 event.ignore()
                 return
         self.settings.setValue("window/geometry", self.saveGeometry())
+        self.recovery.clear()
         event.accept()
 
     def current_editor(self) -> DocumentEditor:
@@ -375,6 +390,43 @@ class MainWindow(QMainWindow):
         geometry = self.settings.value("window/geometry")
         if geometry is not None:
             self.restoreGeometry(geometry)
+
+    def snapshot_recovery(self) -> None:
+        documents = tuple(
+            RecoveryDocument(
+                path=str(editor.path) if editor.path else None,
+                text=editor.toPlainText(),
+            )
+            for index in range(self.tabs.count())
+            if (editor := self.editor_at(index)).document().isModified()
+        )
+        try:
+            self.recovery.save(documents)
+        except OSError as error:
+            LOGGER.warning("Could not update recovery snapshot: %s", error)
+
+    def restore_recovery_session(self) -> bool:
+        documents = self.recovery.load()
+        if not documents:
+            return False
+        answer = QMessageBox.question(
+            self,
+            "Recover unsaved work",
+            f"PyNivo found {len(documents)} unsaved document(s) from an earlier session. "
+            "Recover them?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.Yes,
+        )
+        if answer == QMessageBox.StandardButton.No:
+            self.recovery.clear()
+            return False
+        for document in documents:
+            path = Path(document.path) if document.path else None
+            editor = DocumentEditor(path=path, text=document.text)
+            self.prepare_editor(editor)
+            editor.document().setModified(True)
+        self.statusBar().showMessage("Recovered unsaved work", 5000)
+        return True
 
     def recent_paths(self) -> list[Path]:
         values = self.settings.value("files/recent", [], list)
