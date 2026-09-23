@@ -80,6 +80,9 @@ def verify_distribution(distribution: Path, *, expect_runtime: bool) -> None:
     executable = distribution / "PyNivo.exe"
     if not executable.is_file():
         raise RuntimeError("PyNivo.exe was not created")
+    for notice in ("LICENSE", "NOTICE", "THIRD_PARTY_NOTICES.md"):
+        if not (distribution / notice).is_file():
+            raise RuntimeError(f"Distribution notice is missing: {notice}")
     if expect_runtime:
         runtime = distribution / "runtime" / "python.exe"
         license_file = distribution / "runtime" / "LICENSE.txt"

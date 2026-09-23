@@ -9,6 +9,7 @@ a = Analysis(
     datas=[
         (str(project_root / "src" / "pynivo" / "learning" / "data" / "*.json"), "pynivo/learning/data"),
         (str(project_root / "resources" / "branding" / "pynivo.ico"), "resources/branding"),
+        (str(project_root / "resources" / "branding" / "pynivo-icon.png"), "resources/branding"),
     ],
     hiddenimports=[],
     hookspath=[],

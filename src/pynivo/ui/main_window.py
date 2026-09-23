@@ -31,7 +31,13 @@ from pynivo.core.runtime.manager import RuntimeResolver, RuntimeValidationError
 from pynivo.paths import application_root
 from pynivo.services import ProcessRunner
 from pynivo.ui.console import OutputPanel
-from pynivo.ui.dialogs import ExamplesDialog, FindReplaceDialog, LessonsDialog, WelcomeDialog
+from pynivo.ui.dialogs import (
+    AboutDialog,
+    ExamplesDialog,
+    FindReplaceDialog,
+    LessonsDialog,
+    WelcomeDialog,
+)
 from pynivo.ui.editor import DocumentEditor
 from pynivo.ui.onboarding import should_show_welcome
 from pynivo.ui.themes import apply_theme
@@ -135,6 +141,7 @@ class MainWindow(QMainWindow):
             "Start Learning", QKeySequence("Ctrl+L"), self.show_lessons
         )
         self.welcome_action = self._action("Welcome", QKeySequence(), self.show_welcome)
+        self.about_action = self._action("About PyNivo", QKeySequence(), self.show_about)
         self.theme_action = self._action(
             "Switch to Light", QKeySequence("Ctrl+Shift+T"), self.toggle_theme
         )
@@ -181,6 +188,8 @@ class MainWindow(QMainWindow):
         view_menu.addActions([self.font_up_action, self.font_down_action, self.theme_action])
         learn_menu = self.menuBar().addMenu("&Learn")
         learn_menu.addActions([self.lessons_action, self.examples_action, self.welcome_action])
+        help_menu = self.menuBar().addMenu("&Help")
+        help_menu.addAction(self.about_action)
 
     def _build_toolbar(self) -> None:
         toolbar = QToolBar("Main toolbar", self)
@@ -504,6 +513,9 @@ class MainWindow(QMainWindow):
         dialog.learning_requested.connect(lambda: (dialog.accept(), self.show_lessons()))
         dialog.show()
         self.welcome_dialog = dialog
+
+    def show_about(self) -> None:
+        AboutDialog(self).exec()
 
     def run_current_document(self) -> None:
         if self.runner.is_running:

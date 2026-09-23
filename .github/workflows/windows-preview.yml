@@ -1,0 +1,35 @@
+name: Windows preview installer
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e ".[dev]"
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+      - name: Build verified installer
+        run: python packaging/windows/build_installer.py
+      - name: Create checksum
+        shell: pwsh
+        run: |
+          $file = Get-Item dist/installer/*.exe
+          (Get-FileHash $file.FullName -Algorithm SHA256).Hash + "  " + $file.Name |
+            Set-Content -Encoding ascii dist/installer/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v6
+        with:
+          name: pynivo-windows-preview
+          path: dist/installer/*
+          if-no-files-found: error
+          retention-days: 14
