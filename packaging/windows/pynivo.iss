@@ -22,7 +22,7 @@ MinVersion=10.0
 OutputDir=..\..\dist\installer
 OutputBaseFilename=PyNivo-{#AppVersion}-Preview-Setup-x64
 SetupIconFile=..\..\resources\branding\pynivo.ico
-LicenseFile=..\..\LICENSE
+LicenseFile=..\..\build\installer-license.txt
 UninstallDisplayIcon={app}\{#AppExeName}
 Compression=lzma2/max
 SolidCompression=yes
@@ -48,4 +48,4 @@ Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"
 Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#AppExeName}"; Description: "Launch {#AppName}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#AppExeName}"; Parameters: "--welcome"; Description: "Launch {#AppName}"; Flags: nowait postinstall skipifsilent

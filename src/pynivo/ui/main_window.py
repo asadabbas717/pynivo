@@ -57,6 +57,7 @@ class MainWindow(QMainWindow):
         document_service: DocumentService | None = None,
         *,
         onboarding_enabled: bool = True,
+        force_welcome: bool = False,
     ) -> None:
         super().__init__()
         self.documents = document_service or DocumentService()
@@ -101,10 +102,13 @@ class MainWindow(QMainWindow):
         self.recovery_timer.timeout.connect(self.snapshot_recovery)
         self.recovery_timer.start()
         seen_version = self.settings.value("welcome/seen_version", None)
-        if should_show_welcome(
-            seen_version,
-            __version__,
-            onboarding_enabled=onboarding_enabled,
+        if onboarding_enabled and (
+            force_welcome
+            or should_show_welcome(
+                seen_version,
+                __version__,
+                onboarding_enabled=onboarding_enabled,
+            )
         ):
             QTimer.singleShot(0, self.show_welcome)
 

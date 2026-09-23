@@ -39,7 +39,10 @@ def configure_logging() -> Path:
 
 def main() -> int:
     """Create and run the Qt application."""
-    application = QApplication(sys.argv)
+    smoke_test = "--smoke-test" in sys.argv
+    force_welcome = "--welcome" in sys.argv
+    qt_arguments = [arg for arg in sys.argv if arg not in {"--smoke-test", "--welcome"}]
+    application = QApplication(qt_arguments)
     application.setApplicationName("PyNivo")
     application.setApplicationVersion(__version__)
     application.setOrganizationName("PyNivo")
@@ -47,8 +50,10 @@ def main() -> int:
     log_path = configure_logging()
     logging.getLogger(__name__).info("PyNivo %s starting; log: %s", __version__, log_path)
 
-    smoke_test = "--smoke-test" in sys.argv
-    window = MainWindow(onboarding_enabled=not smoke_test)
+    window = MainWindow(
+        onboarding_enabled=not smoke_test,
+        force_welcome=force_welcome,
+    )
     window.show()
     if smoke_test:
         QTimer.singleShot(750, application.quit)
