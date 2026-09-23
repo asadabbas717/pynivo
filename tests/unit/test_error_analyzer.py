@@ -32,3 +32,16 @@ SyntaxError: expected ':'
 
 def test_returns_none_for_non_traceback_text() -> None:
     assert ErrorAnalyzer().analyze("ordinary stderr output") is None
+
+
+def test_suggests_close_name_from_source() -> None:
+    traceback = """Traceback (most recent call last):
+  File "hello.py", line 2, in <module>
+    print(usernme)
+NameError: name 'usernme' is not defined
+"""
+    error = ErrorAnalyzer().analyze(traceback, 'username = "Ada"\nprint(usernme)\n')
+
+    assert error is not None
+    assert error.suggestions == ("username",)
+    assert 'Did you mean "username"?' in ErrorAnalyzer().format_beginner_message(error)

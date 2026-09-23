@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from difflib import get_close_matches
 
 
 @dataclass(frozen=True, slots=True)
@@ -15,6 +16,7 @@ class PythonError:
     source_line: str | None
     traceback: str
     explanation: str
+    suggestions: tuple[str, ...] = ()
 
 
 class ErrorAnalyzer:
@@ -32,7 +34,7 @@ class ErrorAnalyzer:
         "ModuleNotFoundError": "Python could not find this module. It may not be installed.",
     }
 
-    def analyze(self, traceback: str) -> PythonError | None:
+    def analyze(self, traceback: str, source_code: str = "") -> PythonError | None:
         lines = traceback.rstrip().splitlines()
         exception_match = next(
             (match for line in reversed(lines) if (match := self._exception.match(line.strip()))),
@@ -50,6 +52,9 @@ class ErrorAnalyzer:
                 if candidate and not candidate.startswith("^"):
                     source_line = candidate
         exception_type = exception_match.group("type")
+        suggestions = self._suggestions(
+            exception_type, exception_match.group("message"), source_code
+        )
         return PythonError(
             exception_type=exception_type,
             message=exception_match.group("message"),
@@ -60,6 +65,7 @@ class ErrorAnalyzer:
             explanation=self._explanations.get(
                 exception_type, "Python stopped because the program raised an error."
             ),
+            suggestions=suggestions,
         )
 
     def format_beginner_message(self, error: PythonError) -> str:
@@ -67,4 +73,18 @@ class ErrorAnalyzer:
         result = f"\n{error.exception_type}{location}\n\n{error.explanation}\n"
         if error.message:
             result += f"\nPython says: {error.message}\n"
+        if error.suggestions:
+            result += f'\nDid you mean "{error.suggestions[0]}"?\n'
         return result
+
+    def _suggestions(self, exception_type: str, message: str, source_code: str) -> tuple[str, ...]:
+        if exception_type != "NameError" or not source_code:
+            return ()
+        missing = re.search(r"name ['\"](?P<name>[A-Za-z_]\w*)['\"] is not defined", message)
+        if not missing:
+            return ()
+        unknown = missing.group("name")
+        identifiers = set(re.findall(r"\b[A-Za-z_]\w*\b", source_code))
+        identifiers.discard(unknown)
+        matches = get_close_matches(unknown, identifiers, n=3, cutoff=0.72)
+        return tuple(matches)

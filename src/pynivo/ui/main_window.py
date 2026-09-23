@@ -6,7 +6,7 @@ import logging
 from pathlib import Path
 
 from PySide6.QtCore import QSettings, Qt, QTimer
-from PySide6.QtGui import QAction, QCloseEvent, QKeySequence
+from PySide6.QtGui import QAction, QCloseEvent, QKeySequence, QTextCursor
 from PySide6.QtWidgets import (
     QApplication,
     QFileDialog,
@@ -464,11 +464,19 @@ class MainWindow(QMainWindow):
             message = "Program finished successfully."
         else:
             message = f"Program finished with exit code {exit_code}."
-            error = self.error_analyzer.analyze(self.stderr_buffer)
+            editor = self.current_editor()
+            error = self.error_analyzer.analyze(self.stderr_buffer, editor.toPlainText())
             if error:
                 self.output_panel.append_output(
                     self.error_analyzer.format_beginner_message(error), error=True
                 )
+                if error.line_number:
+                    cursor = QTextCursor(
+                        editor.document().findBlockByLineNumber(error.line_number - 1)
+                    )
+                    editor.setTextCursor(cursor)
+                    editor.centerCursor()
+                    editor.setFocus()
         self.output_panel.append_output(f"\n{message}\n", error=exit_code != 0 and not stopped)
         self.statusBar().showMessage(message, 5000)
 
