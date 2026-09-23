@@ -29,7 +29,7 @@ from pynivo.core.files import DocumentError, DocumentService, RecoveryDocument, 
 from pynivo.core.runtime.manager import RuntimeResolver, RuntimeValidationError
 from pynivo.services import ProcessRunner
 from pynivo.ui.console import OutputPanel
-from pynivo.ui.dialogs import ExamplesDialog, LessonsDialog, WelcomeDialog
+from pynivo.ui.dialogs import ExamplesDialog, FindReplaceDialog, LessonsDialog, WelcomeDialog
 from pynivo.ui.editor import DocumentEditor
 from pynivo.ui.themes import apply_theme
 
@@ -113,6 +113,9 @@ class MainWindow(QMainWindow):
         self.font_down_action = self._action(
             "Decrease Editor Font", QKeySequence("Ctrl+-"), lambda: self.change_font_size(-1)
         )
+        self.find_action = self._action(
+            "Find / Replace", QKeySequence.StandardKey.Find, self.show_find
+        )
         self.examples_action = self._action("Examples", QKeySequence("Ctrl+E"), self.show_examples)
         self.lessons_action = self._action(
             "Start Learning", QKeySequence("Ctrl+L"), self.show_lessons
@@ -147,6 +150,8 @@ class MainWindow(QMainWindow):
         file_menu.addAction(self.exit_action)
 
         edit_menu = self.menuBar().addMenu("&Edit")
+        edit_menu.addAction(self.find_action)
+        edit_menu.addSeparator()
         for label, shortcut, method in (
             ("Undo", QKeySequence.StandardKey.Undo, "undo"),
             ("Redo", QKeySequence.StandardKey.Redo, "redo"),
@@ -358,6 +363,22 @@ class MainWindow(QMainWindow):
         if index >= 0:
             editor = self.editor_at(index)
             self.setWindowTitle(f"{editor.tab_title} — PyNivo")
+            if hasattr(self, "find_dialog"):
+                self.find_dialog.set_editor(editor)
+
+    def show_find(self) -> None:
+        if not hasattr(self, "find_dialog"):
+            self.find_dialog = FindReplaceDialog(self.current_editor(), self)
+        else:
+            self.find_dialog.set_editor(self.current_editor())
+        selected = self.current_editor().textCursor().selectedText()
+        if selected and "\u2029" not in selected:
+            self.find_dialog.find_input.setText(selected)
+        self.find_dialog.show()
+        self.find_dialog.raise_()
+        self.find_dialog.activateWindow()
+        self.find_dialog.find_input.setFocus()
+        self.find_dialog.find_input.selectAll()
 
     def _edit(self, method: str) -> None:
         getattr(self.current_editor(), method)()

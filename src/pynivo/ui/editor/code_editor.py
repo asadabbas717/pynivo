@@ -3,10 +3,19 @@
 from __future__ import annotations
 
 from PySide6.QtCore import QRect, QSize, Qt
-from PySide6.QtGui import QColor, QFontDatabase, QKeyEvent, QPainter, QPaintEvent, QTextFormat
+from PySide6.QtGui import (
+    QColor,
+    QFontDatabase,
+    QKeyEvent,
+    QPainter,
+    QPaintEvent,
+    QTextCursor,
+    QTextFormat,
+)
 from PySide6.QtWidgets import QPlainTextEdit, QTextEdit, QWidget
 
 from pynivo.ui.editor.highlighter import PythonHighlighter
+from pynivo.ui.editor.text_tools import indent_lines, matching_bracket, unindent_lines
 from pynivo.ui.themes import DARK, Theme
 
 
@@ -39,9 +48,9 @@ class CodeEditor(QPlainTextEdit):
         self.setFont(font)
         self.blockCountChanged.connect(self._update_margin)
         self.updateRequest.connect(self._update_line_numbers)
-        self.cursorPositionChanged.connect(self._highlight_current_line)
+        self.cursorPositionChanged.connect(self._update_extra_selections)
         self._update_margin()
-        self._highlight_current_line()
+        self._update_extra_selections()
 
     def line_number_width(self) -> int:
         digits = len(str(max(1, self.blockCount())))
@@ -88,23 +97,45 @@ class CodeEditor(QPlainTextEdit):
             bottom = top + round(self.blockBoundingRect(block).height())
             number += 1
 
-    def _highlight_current_line(self) -> None:
+    def _update_extra_selections(self) -> None:
         selection = QTextEdit.ExtraSelection()
         selection.format.setBackground(QColor(self.theme.current_line))
         selection.format.setProperty(QTextFormat.Property.FullWidthSelection, True)
         selection.cursor = self.textCursor()
         selection.cursor.clearSelection()
-        self.setExtraSelections([selection])
+        selections = [selection]
+        cursor = self.textCursor()
+        document_text = self.toPlainText()
+        candidates = (cursor.position() - 1, cursor.position())
+        for position in candidates:
+            match = matching_bracket(document_text, position)
+            if match is not None:
+                for bracket_position in (position, match):
+                    bracket = QTextEdit.ExtraSelection()
+                    bracket.cursor = self.textCursor()
+                    bracket.cursor.setPosition(bracket_position)
+                    bracket.cursor.movePosition(
+                        QTextCursor.MoveOperation.Right,
+                        QTextCursor.MoveMode.KeepAnchor,
+                    )
+                    bracket.format.setBackground(QColor("#007F6F"))
+                    bracket.format.setForeground(QColor("#FFFFFF"))
+                    selections.append(bracket)
+                break
+        self.setExtraSelections(selections)
 
     def set_theme(self, theme: Theme) -> None:
         self.theme = theme
         self.highlighter.set_colors(theme.syntax)
         self.line_numbers.update()
-        self._highlight_current_line()
+        self._update_extra_selections()
 
     def keyPressEvent(self, event: QKeyEvent) -> None:  # noqa: N802
-        if event.key() == Qt.Key.Key_Tab and not event.modifiers():
-            self.insertPlainText(self.INDENT)
+        if event.key() in (Qt.Key.Key_Tab, Qt.Key.Key_Backtab):
+            unindent = event.key() == Qt.Key.Key_Backtab or bool(
+                event.modifiers() & Qt.KeyboardModifier.ShiftModifier
+            )
+            self._change_indentation(unindent=unindent)
             return
         if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
             current_line = self.textCursor().block().text()
@@ -115,3 +146,33 @@ class CodeEditor(QPlainTextEdit):
             self.insertPlainText(leading)
             return
         super().keyPressEvent(event)
+
+    def _change_indentation(self, *, unindent: bool) -> None:
+        cursor = self.textCursor()
+        if not cursor.hasSelection():
+            if unindent:
+                leading_spaces = len(cursor.block().text()) - len(cursor.block().text().lstrip(" "))
+                cursor.movePosition(QTextCursor.MoveOperation.StartOfBlock)
+                cursor.movePosition(
+                    QTextCursor.MoveOperation.Right,
+                    QTextCursor.MoveMode.KeepAnchor,
+                    min(len(self.INDENT), leading_spaces),
+                )
+                cursor.removeSelectedText()
+            else:
+                cursor.insertText(self.INDENT)
+            return
+        start = cursor.selectionStart()
+        end = cursor.selectionEnd()
+        cursor.setPosition(start)
+        cursor.movePosition(QTextCursor.MoveOperation.StartOfBlock)
+        start = cursor.position()
+        cursor.setPosition(end, QTextCursor.MoveMode.KeepAnchor)
+        if cursor.atBlockStart() and end > start:
+            cursor.movePosition(
+                QTextCursor.MoveOperation.Left,
+                QTextCursor.MoveMode.KeepAnchor,
+            )
+        selected = cursor.selectedText().replace("\u2029", "\n")
+        replacement = unindent_lines(selected) if unindent else indent_lines(selected, self.INDENT)
+        cursor.insertText(replacement)
