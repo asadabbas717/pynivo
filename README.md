@@ -84,15 +84,22 @@ The build downloads the pinned official CPython embeddable runtime into the igno
 verifies its published SHA-256 checksum, creates `dist/PyNivo/PyNivo.exe`, and smoke-tests both the
 application and private learner runtime. End-user startup never downloads executable components.
 
-The generated `dist/` directory is a local preview artifact and is not committed to Git. Public
-release remains blocked until the project license and complete Qt redistribution notices are
-finalized and the build passes clean Windows 10 and Windows 11 machine testing.
+The generated `dist/` directory is a local preview artifact and is not committed to Git. Automated
+workflows can create either a clearly disclosed unsigned preview or a certificate-gated signed
+prerelease. Compliance files and checksums are included in both distributions.
 
 After installing Inno Setup 7, create a non-administrator, per-user preview installer with:
 
 ```bash
 python packaging/windows/build_installer.py --skip-portable
 ```
+
+### Unsigned Windows preview
+
+The current GitHub preview installer is not digitally signed. Windows may identify the publisher
+as **Unknown publisher** or display **Windows protected your PC**. Download it only from the official
+PyNivo GitHub release page and compare the installer SHA-256 value with `SHA256SUMS.txt`. See
+[UNSIGNED_PREVIEW.md](UNSIGNED_PREVIEW.md) for verification and installation guidance.
 
 ## Architecture
 
@@ -133,5 +140,5 @@ copyright attribution and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for b
 ## Roadmap
 
 Development follows the staged roadmap: editor, execution, beginner experience, error intelligence,
-learning content, bundled runtime, and Windows distribution. The current milestone is a signed V1
-release candidate.
+learning content, bundled runtime, and Windows distribution. The current milestone is an unsigned
+public preview; trusted code signing remains planned for a later release.

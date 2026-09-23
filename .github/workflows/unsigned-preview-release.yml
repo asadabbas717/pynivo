@@ -1,0 +1,64 @@
+name: Unsigned Windows preview release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Preview tag (must start with v0.1.0-preview.)
+        required: true
+        default: v0.1.0-preview.1
+
+permissions:
+  contents: write
+
+jobs:
+  build-preview:
+    runs-on: windows-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate preview tag
+        shell: pwsh
+        run: |
+          if ("${{ inputs.tag }}" -notmatch '^v0\.1\.0-preview\.[1-9][0-9]*$') {
+            throw "The tag must match v0.1.0-preview.N."
+          }
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e ".[dev]"
+      - name: Run release checks
+        run: |
+          python -m ruff format --check .
+          python -m ruff check .
+          python -m pytest
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+      - name: Build verified installer
+        run: python packaging/windows/build_installer.py
+      - name: Verify installer is explicitly unsigned
+        shell: pwsh
+        run: |
+          $installer = Get-Item dist/installer/*.exe
+          $signature = Get-AuthenticodeSignature $installer.FullName
+          if ($signature.Status -ne "NotSigned") {
+            throw "Expected an unsigned preview, received signature status $($signature.Status)."
+          }
+      - name: Create checksum
+        shell: pwsh
+        run: |
+          $file = Get-Item dist/installer/*.exe
+          (Get-FileHash $file.FullName -Algorithm SHA256).Hash + "  " + $file.Name |
+            Set-Content -Encoding ascii dist/installer/SHA256SUMS.txt
+      - name: Create draft prerelease
+        shell: pwsh
+        run: |
+          $assets = (Get-ChildItem dist/installer/*).FullName
+          gh release create "${{ inputs.tag }}" $assets `
+            --target "${{ github.sha }}" `
+            --draft --prerelease `
+            --notes-file UNSIGNED_PREVIEW.md `
+            --title "PyNivo 0.1.0 Preview (unsigned)"

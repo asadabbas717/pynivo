@@ -68,7 +68,8 @@ jobs:
       - name: Create draft prerelease
         shell: pwsh
         run: |
-          gh release create "${{ inputs.tag }}" dist/installer/* `
+          $assets = (Get-ChildItem dist/installer/*).FullName
+          gh release create "${{ inputs.tag }}" $assets `
             --draft --prerelease --generate-notes `
             --title "PyNivo ${{ inputs.tag }} Preview"
       - name: Remove signing certificate
