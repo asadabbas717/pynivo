@@ -79,6 +79,12 @@ def stylesheet(theme: Theme) -> str:
     QStatusBar {{ background: {panel}; color: {muted}; border-top: 1px solid {border}; }}
     QLabel#brand {{ color: #21E6C1; font-size: 16pt; font-weight: 700; letter-spacing: 2px; }}
     QLabel#sectionTitle {{ color: {muted}; font-size: 9pt; font-weight: 600; }}
+    QLabel#dialogTitle {{ color: #18CDB0; font-size: 15pt; font-weight: 700; letter-spacing: 1px; }}
+    QLabel#conceptBadge {{ color: {muted}; font-size: 9pt; font-weight: 600; padding: 4px 0; }}
+    QLabel#challengeCard {{ background: {raised}; border-left: 3px solid #18CDB0; padding: 10px; }}
+    QLabel#hintCard {{ background: {raised}; border-left: 3px solid #F9C74F; padding: 10px; }}
+    QProgressBar {{ background: {raised}; border: 1px solid {border}; border-radius: 4px; height: 8px; }}
+    QProgressBar::chunk {{ background: #00A88F; border-radius: 3px; }}
     QToolTip {{ background: {raised}; color: {text}; border: 1px solid {border}; padding: 5px; }}
     QFrame#sideRail {{ background: {panel}; border-right: 1px solid {border}; }}
     QFrame#consoleFrame {{ background: {panel}; border: 1px solid {border}; border-radius: 7px; }}

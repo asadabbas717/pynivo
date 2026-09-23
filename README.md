@@ -22,6 +22,8 @@ not a production IDE or bundled Python distribution yet.
 - Structured offline lessons with explanations, runnable code, challenges, concepts, and hints.
 - A complete 18-lesson beginner course covering Python fundamentals through files, exceptions,
   classes, testing, and a final project.
+- Persistent course progress, completed-lesson indicators, previous/next navigation, editable
+  starter code, reset controls, challenges, and contextual hints.
 - Persistent cinematic dark and high-contrast light themes with a branded navigation rail and
   theme-aware editor, syntax, console, dialogs, and controls.
 - Bundled-runtime discovery and validation compatible with an official Windows CPython embeddable

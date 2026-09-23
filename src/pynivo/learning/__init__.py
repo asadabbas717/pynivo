@@ -2,5 +2,6 @@
 
 from pynivo.learning.examples import Example, ExampleLibrary
 from pynivo.learning.lessons import Lesson, LessonLibrary
+from pynivo.learning.progress import CourseProgress
 
-__all__ = ["Example", "ExampleLibrary", "Lesson", "LessonLibrary"]
+__all__ = ["CourseProgress", "Example", "ExampleLibrary", "Lesson", "LessonLibrary"]
