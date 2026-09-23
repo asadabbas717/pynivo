@@ -47,8 +47,9 @@ def main() -> int:
     log_path = configure_logging()
     logging.getLogger(__name__).info("PyNivo %s starting; log: %s", __version__, log_path)
 
-    window = MainWindow()
+    smoke_test = "--smoke-test" in sys.argv
+    window = MainWindow(onboarding_enabled=not smoke_test)
     window.show()
-    if "--smoke-test" in sys.argv:
+    if smoke_test:
         QTimer.singleShot(750, application.quit)
     return application.exec()

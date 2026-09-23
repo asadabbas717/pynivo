@@ -23,6 +23,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from pynivo import __version__
 from pynivo.core.errors import ErrorAnalyzer
 from pynivo.core.execution import ExecutionRequest, ExecutionRequestError
 from pynivo.core.files import DocumentError, DocumentService, RecoveryDocument, RecoveryService
@@ -32,6 +33,7 @@ from pynivo.services import ProcessRunner
 from pynivo.ui.console import OutputPanel
 from pynivo.ui.dialogs import ExamplesDialog, FindReplaceDialog, LessonsDialog, WelcomeDialog
 from pynivo.ui.editor import DocumentEditor
+from pynivo.ui.onboarding import should_show_welcome
 from pynivo.ui.themes import apply_theme
 
 LOGGER = logging.getLogger(__name__)
@@ -44,7 +46,12 @@ print(f"Hello, {name}!")
 class MainWindow(QMainWindow):
     """Beginner-focused workspace coordinating multiple source documents."""
 
-    def __init__(self, document_service: DocumentService | None = None) -> None:
+    def __init__(
+        self,
+        document_service: DocumentService | None = None,
+        *,
+        onboarding_enabled: bool = True,
+    ) -> None:
         super().__init__()
         self.documents = document_service or DocumentService()
         self.runtime = RuntimeResolver(application_root())
@@ -87,7 +94,12 @@ class MainWindow(QMainWindow):
         self.recovery_timer.setInterval(15_000)
         self.recovery_timer.timeout.connect(self.snapshot_recovery)
         self.recovery_timer.start()
-        if not self.settings.value("welcome/seen", False, bool):
+        seen_version = self.settings.value("welcome/seen_version", None)
+        if should_show_welcome(
+            seen_version,
+            __version__,
+            onboarding_enabled=onboarding_enabled,
+        ):
             QTimer.singleShot(0, self.show_welcome)
 
     def _build_actions(self) -> None:
@@ -484,7 +496,7 @@ class MainWindow(QMainWindow):
         dialog.exec()
 
     def show_welcome(self) -> None:
-        self.settings.setValue("welcome/seen", True)
+        self.settings.setValue("welcome/seen_version", __version__)
         dialog = WelcomeDialog(self)
         dialog.create_requested.connect(lambda: (self.new_document(), dialog.accept()))
         dialog.open_requested.connect(lambda: (dialog.accept(), self.open_document_dialog()))
