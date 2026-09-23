@@ -76,3 +76,45 @@ def test_runner_stops_long_running_program(tmp_path: Path) -> None:
     )
 
     assert stopped
+
+
+def test_runner_rejects_duplicate_execution(tmp_path: Path) -> None:
+    script = tmp_path / "wait.py"
+    script.write_text("import time\ntime.sleep(10)\n", encoding="utf-8")
+    runner = ProcessRunner()
+    request = ExecutionRequest.for_script(Path(sys.executable), script)
+    loop = QEventLoop()
+    duplicate_result: list[bool] = []
+
+    def try_duplicate_then_stop() -> None:
+        duplicate_result.append(runner.run(request))
+        runner.stop()
+
+    runner.started.connect(try_duplicate_then_stop)
+    runner.finished.connect(lambda _code, _stopped: loop.quit())
+
+    assert runner.run(request)
+    QTimer.singleShot(5000, loop.quit)
+    loop.exec()
+
+    assert duplicate_result == [False]
+    assert not runner.is_running
+
+
+def test_runner_reports_unlaunchable_executable(tmp_path: Path) -> None:
+    invalid_runtime = tmp_path / "invalid-python.exe"
+    invalid_runtime.write_text("not an executable", encoding="utf-8")
+    script = tmp_path / "script.py"
+    script.write_text("print('hello')\n", encoding="utf-8")
+    runner = ProcessRunner()
+    failures: list[str] = []
+    loop = QEventLoop()
+    runner.launch_failed.connect(lambda message: (failures.append(message), loop.quit()))
+    request = ExecutionRequest.for_script(invalid_runtime, script)
+
+    assert runner.run(request)
+    QTimer.singleShot(5000, loop.quit)
+    loop.exec()
+
+    assert failures
+    assert not runner.is_running

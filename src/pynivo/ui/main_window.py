@@ -50,6 +50,8 @@ class MainWindow(QMainWindow):
         self.runtime = RuntimeResolver(application_root)
         self.error_analyzer = ErrorAnalyzer()
         self.stderr_buffer = ""
+        self.running_document_path: Path | None = None
+        self.running_source_code = ""
         self.settings = QSettings()
         recovery_root = (
             Path(
@@ -513,8 +515,11 @@ class MainWindow(QMainWindow):
             return
         self.output_panel.clear_output()
         self.stderr_buffer = ""
+        self.running_document_path = editor.path
+        self.running_source_code = editor.toPlainText()
         self.output_panel.append_output(f"Running {editor.path.name}…\n")
         if not self.runner.run(request):
+            self._clear_running_document()
             self.output_panel.append_output("A program is already running.\n", error=True)
 
     def stop_program(self) -> None:
@@ -537,21 +542,23 @@ class MainWindow(QMainWindow):
             message = "Program finished successfully."
         else:
             message = f"Program finished with exit code {exit_code}."
-            editor = self.current_editor()
-            error = self.error_analyzer.analyze(self.stderr_buffer, editor.toPlainText())
+            error = self.error_analyzer.analyze(self.stderr_buffer, self.running_source_code)
             if error:
                 self.output_panel.append_output(
                     self.error_analyzer.format_beginner_message(error), error=True
                 )
-                if error.line_number:
+                editor = self._running_editor()
+                if editor is not None and error.line_number:
                     cursor = QTextCursor(
                         editor.document().findBlockByLineNumber(error.line_number - 1)
                     )
+                    self.tabs.setCurrentWidget(editor)
                     editor.setTextCursor(cursor)
                     editor.centerCursor()
                     editor.setFocus()
         self.output_panel.append_output(f"\n{message}\n", error=exit_code != 0 and not stopped)
         self.statusBar().showMessage(message, 5000)
+        self._clear_running_document()
 
     def program_error_output(self, text: str) -> None:
         self.stderr_buffer += text
@@ -562,3 +569,17 @@ class MainWindow(QMainWindow):
         self.stop_action.setEnabled(False)
         self.output_panel.set_running(False)
         self.output_panel.append_output(f"Could not start Python: {message}\n", error=True)
+        self._clear_running_document()
+
+    def _running_editor(self) -> DocumentEditor | None:
+        if self.running_document_path is None:
+            return None
+        for index in range(self.tabs.count()):
+            editor = self.editor_at(index)
+            if editor.path == self.running_document_path:
+                return editor
+        return None
+
+    def _clear_running_document(self) -> None:
+        self.running_document_path = None
+        self.running_source_code = ""
