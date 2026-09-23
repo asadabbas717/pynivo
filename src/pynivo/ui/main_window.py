@@ -27,6 +27,7 @@ from pynivo.core.errors import ErrorAnalyzer
 from pynivo.core.execution import ExecutionRequest, ExecutionRequestError
 from pynivo.core.files import DocumentError, DocumentService, RecoveryDocument, RecoveryService
 from pynivo.core.runtime.manager import RuntimeResolver, RuntimeValidationError
+from pynivo.paths import application_root
 from pynivo.services import ProcessRunner
 from pynivo.ui.console import OutputPanel
 from pynivo.ui.dialogs import ExamplesDialog, FindReplaceDialog, LessonsDialog, WelcomeDialog
@@ -46,8 +47,7 @@ class MainWindow(QMainWindow):
     def __init__(self, document_service: DocumentService | None = None) -> None:
         super().__init__()
         self.documents = document_service or DocumentService()
-        application_root = Path(__file__).resolve().parents[3]
-        self.runtime = RuntimeResolver(application_root)
+        self.runtime = RuntimeResolver(application_root())
         self.error_analyzer = ErrorAnalyzer()
         self.stderr_buffer = ""
         self.running_document_path: Path | None = None

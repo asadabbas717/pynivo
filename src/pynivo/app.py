@@ -7,10 +7,12 @@ import sys
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
-from PySide6.QtCore import QStandardPaths
+from PySide6.QtCore import QStandardPaths, QTimer
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 
 from pynivo import __version__
+from pynivo.paths import resource_path
 from pynivo.ui.main_window import MainWindow
 
 
@@ -41,9 +43,12 @@ def main() -> int:
     application.setApplicationName("PyNivo")
     application.setApplicationVersion(__version__)
     application.setOrganizationName("PyNivo")
+    application.setWindowIcon(QIcon(str(resource_path("resources/branding/pynivo.ico"))))
     log_path = configure_logging()
     logging.getLogger(__name__).info("PyNivo %s starting; log: %s", __version__, log_path)
 
     window = MainWindow()
     window.show()
+    if "--smoke-test" in sys.argv:
+        QTimer.singleShot(750, application.quit)
     return application.exec()

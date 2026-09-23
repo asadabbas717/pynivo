@@ -18,7 +18,6 @@ env/
 # Build and packaging
 build/
 dist/
-*.spec
 
 # Editors and operating systems
 .vscode/

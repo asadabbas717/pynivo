@@ -2,9 +2,9 @@
 
 **Python, ready when you are.**
 
-PyNivo is an offline-first desktop IDE designed to remove the initial setup barrier for
-people learning Python. The current repository contains the Phase 1 editor foundation,
-not a production IDE or bundled Python distribution yet.
+PyNivo is an offline-first desktop IDE designed to remove the initial setup barrier for people
+learning Python. The repository now contains the complete pre-release editor, learning experience,
+execution system, and a reproducible Windows portable-build pipeline.
 
 ## Current state
 
@@ -72,6 +72,28 @@ ruff format --check .
 pytest
 ```
 
+## Windows portable build
+
+Install the development dependencies, then run this command from Git Bash on 64-bit Windows:
+
+```bash
+python packaging/windows/build.py
+```
+
+The build downloads the pinned official CPython embeddable runtime into the ignored build cache,
+verifies its published SHA-256 checksum, creates `dist/PyNivo/PyNivo.exe`, and smoke-tests both the
+application and private learner runtime. End-user startup never downloads executable components.
+
+The generated `dist/` directory is a local preview artifact and is not committed to Git. Public
+release remains blocked until the project license and complete Qt redistribution notices are
+finalized and the build passes clean Windows 10 and Windows 11 machine testing.
+
+After installing Inno Setup 7, create a non-administrator, per-user preview installer with:
+
+```bash
+python packaging/windows/build_installer.py --skip-portable
+```
+
 ## Architecture
 
 ```text
@@ -101,5 +123,5 @@ decision and for a `CONTRIBUTING.md` policy in a later foundation step.
 ## Roadmap
 
 Development follows the staged roadmap: editor, execution, beginner experience, error intelligence,
-learning content, bundled runtime, and finally Windows distribution. The immediate next milestone is
-user approval of the refreshed interface and course, followed by Windows packaging.
+learning content, bundled runtime, and finally Windows distribution. The current milestone is
+portable-build validation, followed by installer creation and clean-machine testing.
