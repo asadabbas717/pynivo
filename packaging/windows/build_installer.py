@@ -35,13 +35,6 @@ def main() -> int:
             cwd=project_root,
             check=True,
         )
-    license_text = (project_root / "LICENSE").read_text(encoding="utf-8")
-    installer_license = project_root / "build" / "installer-license.txt"
-    installer_license.parent.mkdir(parents=True, exist_ok=True)
-    installer_license.write_text(
-        "PyNivo\nCopyright 2026 Asad Abbas\n\n" + license_text,
-        encoding="utf-8",
-    )
     compiler = find_compiler()
     if compiler is None:
         raise RuntimeError(

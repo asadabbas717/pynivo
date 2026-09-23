@@ -47,14 +47,19 @@ def main() -> int:
     application.setApplicationVersion(__version__)
     application.setOrganizationName("PyNivo")
     application.setWindowIcon(QIcon(str(resource_path("resources/branding/pynivo.ico"))))
-    log_path = configure_logging()
-    logging.getLogger(__name__).info("PyNivo %s starting; log: %s", __version__, log_path)
+    if smoke_test:
+        logging.getLogger().handlers.clear()
+        logging.getLogger().addHandler(logging.NullHandler())
+    else:
+        log_path = configure_logging()
+        logging.getLogger(__name__).info("PyNivo %s starting; log: %s", __version__, log_path)
 
     window = MainWindow(
         onboarding_enabled=not smoke_test,
         force_welcome=force_welcome,
+        recovery_enabled=not smoke_test,
     )
     window.show()
     if smoke_test:
-        QTimer.singleShot(750, application.quit)
+        QTimer.singleShot(750, lambda: application.exit(0))
     return application.exec()

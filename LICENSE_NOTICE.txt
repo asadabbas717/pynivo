@@ -1,0 +1,14 @@
+PyNivo 0.1.0 Preview
+Copyright 2026 Asad Abbas
+
+PyNivo is licensed under the Apache License, Version 2.0.
+
+You may use, reproduce, and distribute PyNivo in accordance with the terms of
+the Apache License 2.0. The software is provided on an "AS IS" BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+License information:
+https://www.apache.org/licenses/LICENSE-2.0
+
+The complete, unmodified Apache License 2.0 text is installed with PyNivo in
+the file named LICENSE.

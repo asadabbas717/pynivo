@@ -37,7 +37,7 @@ class AboutDialog(QDialog):
         summary.setWordWrap(True)
 
         tabs = QTabWidget(self)
-        tabs.addTab(self._notice_view("LICENSE"), "PyNivo License")
+        tabs.addTab(self._notice_view("LICENSE_NOTICE.txt"), "PyNivo License")
         tabs.addTab(self._notice_view("THIRD_PARTY_NOTICES.md"), "Third-party Notices")
         close_button = QPushButton("Close", self)
         close_button.clicked.connect(self.accept)

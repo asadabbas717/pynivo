@@ -58,6 +58,7 @@ class MainWindow(QMainWindow):
         *,
         onboarding_enabled: bool = True,
         force_welcome: bool = False,
+        recovery_enabled: bool = True,
     ) -> None:
         super().__init__()
         self.documents = document_service or DocumentService()
@@ -95,7 +96,7 @@ class MainWindow(QMainWindow):
         self.runner.launch_failed.connect(self.program_launch_failed)
         self.output_panel.input_submitted.connect(self.runner.write_input)
         self._restore_settings()
-        if not self.restore_recovery_session():
+        if not recovery_enabled or not self.restore_recovery_session():
             self.new_document(WELCOME_CODE)
         self.recovery_timer = QTimer(self)
         self.recovery_timer.setInterval(15_000)

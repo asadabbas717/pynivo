@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import os
 import shutil
 import subprocess
 import sys
@@ -71,6 +72,7 @@ def build(project_root: Path, *, skip_runtime: bool) -> Path:
         safe_extract(archive, runtime)
     shutil.copy2(project_root / "THIRD_PARTY_NOTICES.md", distribution)
     shutil.copy2(project_root / "LICENSE", distribution)
+    shutil.copy2(project_root / "LICENSE_NOTICE.txt", distribution)
     shutil.copy2(project_root / "NOTICE", distribution)
     verify_distribution(distribution, expect_runtime=not skip_runtime)
     return distribution
@@ -80,7 +82,7 @@ def verify_distribution(distribution: Path, *, expect_runtime: bool) -> None:
     executable = distribution / "PyNivo.exe"
     if not executable.is_file():
         raise RuntimeError("PyNivo.exe was not created")
-    for notice in ("LICENSE", "NOTICE", "THIRD_PARTY_NOTICES.md"):
+    for notice in ("LICENSE", "LICENSE_NOTICE.txt", "NOTICE", "THIRD_PARTY_NOTICES.md"):
         if not (distribution / notice).is_file():
             raise RuntimeError(f"Distribution notice is missing: {notice}")
     if expect_runtime:
@@ -99,7 +101,14 @@ def verify_distribution(distribution: Path, *, expect_runtime: bool) -> None:
         )
         if result.returncode != 0 or result.stdout.strip() != "PYNIVO_RUNTIME_OK":
             raise RuntimeError(f"Bundled runtime smoke test failed: {result.stderr.strip()}")
-    result = subprocess.run([str(executable), "--smoke-test"], timeout=30, check=False)
+    smoke_environment = os.environ.copy()
+    smoke_environment["LOCALAPPDATA"] = str(distribution.parent / "smoke-appdata")
+    result = subprocess.run(
+        [str(executable), "--smoke-test"],
+        env=smoke_environment,
+        timeout=30,
+        check=False,
+    )
     if result.returncode != 0:
         raise RuntimeError(f"Packaged application exited with code {result.returncode}")
 
