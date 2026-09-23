@@ -9,7 +9,8 @@ def test_canonical_lgpl_license_files_are_unchanged() -> None:
     }
 
     for filename, digest in expected.items():
-        content = (Path("licenses") / filename).read_bytes()
+        text = (Path("licenses") / filename).read_text(encoding="utf-8")
+        content = text.replace("\r\n", "\n").encode("utf-8")
         assert hashlib.sha256(content).hexdigest() == digest
 
 
