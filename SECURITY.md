@@ -4,7 +4,7 @@ PyNivo is in early development and does not yet have supported production releas
 
 ## Security model
 
-Opening a Python file must never execute it. When execution is implemented, learner code will run
+Opening a Python file must never execute it. Learner code runs
 in a separate child process without use of a command shell. This is a reliability boundary, not a
 sandbox: Python code intentionally run by the user can read, modify, or transmit data available to
 that user's account.

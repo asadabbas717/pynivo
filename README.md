@@ -40,8 +40,8 @@ interpreter that starts PyNivo until a verified runtime is staged for a producti
 
 ## Development setup
 
-Python 3.11 or newer is required for development. End users will not require a separate Python
-installation once the bundled-runtime milestone is complete.
+Python 3.11 or newer is required for development. Windows distributions include the private
+learner interpreter, so end users do not need a separate Python installation.
 
 In Git Bash on Windows:
 
@@ -96,26 +96,34 @@ python packaging/windows/build_installer.py --skip-portable
 
 ### Unsigned Windows preview
 
-The current GitHub preview installer is not digitally signed. Windows may identify the publisher
-as **Unknown publisher** or display **Windows protected your PC**. Download it only from the official
+The unsigned preview release path produces an installer without a digital signature.
+Actual release availability is not established by this repository snapshot. Windows may
+identify the publisher as **Unknown publisher** or display **Windows protected your PC**. Download it only from the official
 PyNivo GitHub release page and compare the installer SHA-256 value with `SHA256SUMS.txt`. See
 [UNSIGNED_PREVIEW.md](UNSIGNED_PREVIEW.md) for verification and installation guidance.
 
 ## Architecture
 
 ```text
-src/pynivo/
-├── app.py                 # application lifecycle and logging startup
-├── ui/main_window.py      # Qt main-window shell
-└── core/
-    ├── execution/         # validated process launch descriptions
-    ├── files/             # UTF-8 loading and atomic saving
-    └── runtime/           # runtime discovery and validation
+src/pynivo/               # installed Python package
+  app.py, paths.py        # startup, logging, source/frozen resource paths
+  ui/                     # main window, editor, console, dialogs, themes
+  core/                   # file/recovery, runtime, execution, error services
+  services/               # QProcess execution adapter
+  learning/               # curriculum/progress models and offline JSON
+tests/                    # unit and real-process integration checks
+packaging/windows/        # portable-build and installer tooling
+.github/workflows/        # Windows quality and release automation
+docs/                     # architecture, decisions, roadmap
 ```
 
 Learner programs must always run in a separate child process. This separation protects the GUI's
 responsiveness, but it is **not a security sandbox**: Python programs can still access resources
 available to the user's account.
+
+See [docs/architecture.md](docs/architecture.md) for component boundaries, persistence,
+execution workflows, and Windows distribution details. New sessions should start with
+[AGENTS.md](AGENTS.md) and [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md).
 
 ## Dependency and licensing note
 
@@ -142,3 +150,13 @@ copyright attribution and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for b
 Development follows the staged roadmap: editor, execution, beginner experience, error intelligence,
 learning content, bundled runtime, and Windows distribution. The current milestone is an unsigned
 public preview; trusted code signing remains planned for a later release.
+
+See the evidence-based [engineering roadmap](docs/roadmap.md) for completed milestones,
+known gaps, and recommended next work. Release publication and signing readiness must be
+verified separately from workflow configuration.
+
+## Development notes
+
+Follow [CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md). Core services stay
+independent of Qt, learner code runs outside the GUI, and behavior changes require relevant
+checks and updated continuity documentation.

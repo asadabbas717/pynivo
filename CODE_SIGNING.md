@@ -1,6 +1,7 @@
 # Windows code signing
 
-The GitHub release workflow deliberately refuses to publish an installer unless
+The signed prerelease workflow (`.github/workflows/release.yml`) refuses to create
+a draft prerelease unless
 it has been signed and verified with Windows SignTool.
 
 ## Required GitHub Actions secrets
@@ -27,3 +28,9 @@ is removed even if another step fails.
 An EV certificate may require hardware-backed or cloud signing instead of a PFX.
 In that case, adapt the signing step to the certificate provider before running
 the release workflow.
+
+The separate [unsigned preview path](UNSIGNED_PREVIEW.md) uses
+`.github/workflows/unsigned-preview-release.yml`, explicitly checks unsigned status,
+and creates a draft with preview disclosures and checksums. Draft creation does not
+publish a release. Certificate configuration and actual release availability must
+be checked separately.

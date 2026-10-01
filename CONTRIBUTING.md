@@ -1,7 +1,7 @@
 # Contributing to PyNivo
 
-PyNivo is at an early foundation stage. Keep changes focused on the current roadmap milestone and
-preserve the beginner-first, offline-first product direction.
+PyNivo is an actively developed 0.1.0 prerelease desktop preview. Keep changes focused on
+the current roadmap milestone and preserve the beginner-first, offline-first product direction.
 
 ## Local setup
 
@@ -33,3 +33,6 @@ pytest
 
 By submitting a contribution, you agree that it may be distributed under the project's Apache
 License 2.0. Contributors retain copyright in their contributions.
+
+Before development, read [AGENTS.md](AGENTS.md), [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md),
+and the [engineering roadmap](docs/roadmap.md). Keep continuity documentation current.
