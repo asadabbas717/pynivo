@@ -18,7 +18,7 @@ execution system, and a reproducible Windows portable-build pipeline.
 - Integrated output panel with visually distinct errors and a clear action.
 - First-run welcome actions and an offline library of editable beginner examples.
 - Deterministic parsing and beginner-friendly explanations for common Python tracebacks while
-  keeping the complete original traceback visible.
+  retaining the latest output within a 250,000-character console limit.
 - Structured offline lessons with explanations, runnable code, challenges, concepts, and hints.
 - A complete 18-lesson beginner course covering Python fundamentals through files, exceptions,
   classes, testing, and a final project.
@@ -27,7 +27,7 @@ execution system, and a reproducible Windows portable-build pipeline.
 - Persistent cinematic dark and high-contrast light themes with a branded navigation rail and
   theme-aware editor, syntax, console, dialogs, and controls.
 - Bundled-runtime discovery and validation compatible with an official Windows CPython embeddable
-  distribution, with development-interpreter fallback when no bundle is present.
+  distribution, with development-interpreter fallback in source runs. Frozen builds require the bundle.
 - Runtime abstraction that discovers and validates a development Python interpreter without
   hardcoding machine-specific paths.
 - Safe execution-request construction using an executable and an argument list (never a shell
@@ -160,3 +160,16 @@ verified separately from workflow configuration.
 Follow [CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md). Core services stay
 independent of Qt, learner code runs outside the GUI, and behavior changes require relevant
 checks and updated continuity documentation.
+
+## Engineering validation and limitations
+
+See [ENGINEERING_AUDIT.md](ENGINEERING_AUDIT.md) for the 2026-10-05 assessment and
+[docs/testing.md](docs/testing.md) for reproducible checks and the unresolved local
+invalid-executable launch stall. A passing editable install does not validate a wheel;
+CI also builds the wheel. No application secrets or `.env` setup are required.
+
+Recovery stores modified source locally in plaintext every 15 seconds. Console input
+is echoed; learner processes inherit the user environment and ordinary user privileges.
+Stop targets the direct child. Clean-machine installer, screen-reader, and both-theme
+manual QA remain release requirements. Development dependency ranges are not a locked
+or bit-for-bit reproducible toolchain. No signed or published release is claimed.

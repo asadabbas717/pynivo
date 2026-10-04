@@ -76,14 +76,16 @@ RecoveryService stores version-1 JSON with `documents` containing `path` (or nul
 and `text`. MainWindow snapshots modified buffers every 15 seconds, prompts on
 startup, restores dirty state, and clears snapshots after a clean close. This is
 periodic crash recovery, not full saved-tab persistence. Snapshots contain
-plaintext learner source. Invalid JSON is ignored, but valid unexpected root
-shapes can raise AttributeError because the parsed value is assumed to be a dict.
+plaintext learner source. Invalid JSON and valid unexpected root
+shapes are rejected, with valid entries retained from mixed lists; path values must
+be strings or null.
 
 ## Runtime and process architecture
 
 `paths.application_root()` is the checkout root in source runs and the executable
 folder when frozen. `resource_path()` uses PyInstaller `_MEIPASS` when available.
-RuntimeResolver prefers `runtime/python.exe`, otherwise `sys.executable`.
+RuntimeResolver prefers `runtime/python.exe`; source runs may use `sys.executable`.
+Frozen builds without a bundle report runtime unavailability.
 Bundled validation requires the private location, standard-library ZIP, DLL, and
 `._pth` file, then invokes `--version` with a five-second timeout. An invalid
 present bundle fails rather than silently falling back. Frozen GUI executables
@@ -92,10 +94,10 @@ are not usable development interpreters; distributable builds need the bundle.
 ExecutionRequest validates resolved executable/script paths, requires `.py`,
 and supplies an argument tuple with the script-parent working directory.
 ProcessRunner owns one QProcess, inherits system environment, sets
-`PYTHONIOENCODING`/`PYTHONUTF8`, decodes separate channels as UTF-8, and writes
+`PYTHONIOENCODING`/`PYTHONUTF8`, incrementally decodes separate channels as UTF-8, and writes
 newline-terminated input. Launches never use a shell. Stop terminates the direct
 child and schedules kill after two seconds if still running; descendants are
-not managed and the callback is not tied to a unique execution generation.
+not managed; the callback checks the execution generation and stopping state.
 
 ## Data flows
 
@@ -112,16 +114,17 @@ builds a request, clears old output/stderr, and snapshots the running path/sourc
 QProcess signals update controls, input, output, and status. Switching tabs does
 not change captured run identity. On nonzero exit, ErrorAnalyzer parses stderr
 and adds local beginner guidance. The original script tab is selected for a
-reported line if still open. The final traceback filename is not checked against
-that script; imported-file failures can navigate to an unrelated line.
+reported line only when its resolved filename matches the run path, the editor still
+contains the run source snapshot, and the line is within the document. Malformed
+filenames are ignored. Diagnostic stderr retains its latest 250,000 characters.
 
 ### Learning and recovery
 
 Welcome normally appears once per app version; menu reopening and `--welcome`
 are available. Lessons provide navigation, hints, editable code, reset, and
 manual completion persisted by stable ID. Lesson-dialog edits are not persisted
-drafts. Copying starter code to an editor starts unmodified; untouched starter
-tabs are therefore excluded from periodic modified-buffer snapshots. Recovery
+drafts. Untitled nonempty starter code starts modified, so untouched starter tabs receive
+save prompts and periodic recovery snapshots. Recovery
 prompts before rebuilding tabs and marks restored buffers modified.
 
 ## Error handling
@@ -131,8 +134,8 @@ are caught before launch; QProcess startup failures emit `launch_failed` and
 restore controls. Recovery snapshot I/O failures are logged. ErrorAnalyzer uses
 regular expressions for the last matching exception/location, fixed explanations,
 and difflib NameError suggestions. Unknown matching exceptions get a generic
-explanation; unrecognized text yields None. Visible output truncation can discard
-traceback text even though diagnostic stderr remains unbounded.
+explanation; unrecognized text yields None. Both visible output and diagnostic stderr are bounded; earlier traceback content
+may be discarded.
 
 ## External integrations and security
 
@@ -148,18 +151,18 @@ may contain private information. Never commit or upload them as routine diagnost
 
 The build checks a hardcoded SHA-256 and rejects ZIP destination traversal before
 extraction. No runtime binaries are tracked or downloaded on startup. Signing
-secrets become a temporary runner PFX with always-run cleanup. Dispatch inputs
-are currently interpolated into PowerShell source; recommended hardening is to
-pass them via environment variables. No credential isolation is claimed.
+secrets become a temporary runner PFX with always-run cleanup. Dispatch tags and checkout SHA are passed through environment variables; tags are
+validated before release work. No credential isolation is claimed.
 
 ## Testing architecture
 
-42 pytest tests cover files/recovery, runtime/request validation, output limits,
+Tests cover files/recovery, runtime/request validation, output limits,
 content/progress, errors, editor helpers, themes, onboarding, notices, and static
 installer contracts. Content tests compile snippets, not execute all lessons.
 Integration tests use a Qt core event loop and real Python children for Unicode
-channels, stdin, stopping, duplicates, and launch failures. There is no automated
-MainWindow/dialog end-to-end or clean-machine installer suite. CI defines Windows
+channels, stdin, stopping, duplicates, and launch failures. MainWindow component regressions now cover save cancellation, close cancellation,
+recovery, bounded diagnostics, and completion navigation. There is no full dialog
+end-to-end or clean-machine installer suite. CI defines Windows
 Python 3.11/3.13 lint, format, and pytest checks.
 
 ## Distribution architecture
@@ -188,9 +191,8 @@ Output: `dist/installer/PyNivo-0.1.0-Preview-Setup-x64.exe`.
 | `unsigned-preview-release.yml` | Manual validated preview tag; quality checks, require NotSigned, checksum, draft prerelease at checkout SHA |
 | `release.yml` | Manual tag; require signing secrets, checks, sign/verify, checksum, draft prerelease |
 
-Both release workflows create drafts; source does not prove publication. Signed
-release does not explicitly pass checkout SHA to `gh release create`, unlike the
-unsigned workflow: verify tag targeting before release. No hosting or automatic
+Both release workflows create drafts; source does not prove publication. Both release paths pass checkout SHA to `gh release create`; an existing tag still
+requires verification against the intended commit before release. No hosting or automatic
 update mechanism exists. Preserve project/dependency notices and LGPL replacement
 instructions in every distribution.
 
@@ -198,3 +200,13 @@ Version locations: `pyproject.toml`, `src/pynivo/__init__.py`, Windows
 `version_info.txt`, `pynivo.iss`, preview/compliance docs. Runtime pin is separate
 in `build.py`. See README for commands and [roadmap](roadmap.md) for limitations
 and recommended work.
+
+## Audit validation update — 2026-10-05
+
+The wheel uses Hatchling's normal `src/pynivo` package inclusion. The previous
+force-include rule duplicated curriculum paths and broke a current Hatchling build.
+An actual wheel was built and both JSON libraries loaded through its zip resources
+under Python isolated mode. CI now builds wheels and checks `pip check`.
+See [testing](testing.md) and [engineering audit](../ENGINEERING_AUDIT.md) for local
+results and unresolved launch/installer validation. The initial assessment date
+above records the architecture document's origin, not the date of every update.

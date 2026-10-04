@@ -130,3 +130,40 @@ status, with explicit disclosures.
 **Consequences:** Draft creation is not publication; unsigned checksums do not
 establish publisher trust. Credential readiness/live release state is unverified.
 Review dispatch input handling and tag targeting before subsequent releases.
+
+## Decision 009 — Bounded diagnostics and execution identity guards
+
+**Status:** Current engineering decision, 2026-10-05.
+
+**Context:** Unbounded stderr and delayed Stop callbacks could exhaust memory or
+terminate a subsequent run. Per-read UTF-8 decoding corrupted split characters;
+tracebacks from imports or an older source snapshot could navigate incorrectly.
+
+**Decision:** Retain a 250,000-character stderr tail, use per-channel incremental
+decoders, bind delayed kills to the run generation/stopping state, and navigate only
+to a matching file and unchanged source snapshot with a valid line number.
+
+**Alternatives:** Retain all output on disk, create a new process adapter per run,
+or rewrite execution into a general task framework.
+
+**Rationale/trade-offs:** Small guards preserve the existing asynchronous adapter
+and protect concrete failures without dependencies. Earlier diagnostics can be lost;
+process descendants remain outside the Stop contract. Source matching is conservative.
+
+## Decision 010 — Validate recovery and distributable artifacts at their boundaries
+
+**Status:** Current engineering decision, 2026-10-05.
+
+**Context:** Recovery accepts external local JSON; editable installs concealed duplicate
+wheel inclusion. Frozen GUI executables must never become learner interpreters.
+
+**Decision:** Reject invalid snapshot roots/containers and invalid entry paths while
+retaining valid entries. Keep version-1 data compatibility. Untitled nonempty starter
+buffers are dirty. Frozen runs require the private runtime. Use normal package resource
+inclusion and build wheels in CI, in addition to source tests and `pip check`.
+
+**Alternatives:** Migrate recovery to a database or introduce schema/dependency tooling.
+
+**Rationale/trade-offs:** Existing dataclasses, JSON, and package layout suffice.
+No migration or new runtime dependency is needed. This does not establish full session
+persistence, locked toolchains, or installed-machine QA.

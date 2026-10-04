@@ -28,3 +28,8 @@ def test_missing_bundle_falls_back_to_development_runtime(tmp_path: Path) -> Non
 
     assert runtime is not None
     assert runtime.is_file()
+
+
+def test_frozen_app_without_bundle_never_uses_gui_as_python(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("sys.frozen", True, raising=False)
+    assert RuntimeResolver(tmp_path).locate_runtime() is None

@@ -50,3 +50,17 @@ def test_load_reports_invalid_utf8(tmp_path: Path) -> None:
 
     with pytest.raises(DocumentError, match="Could not open"):
         DocumentService().load(source)
+
+
+def test_failed_atomic_replace_preserves_original_and_cleans_temp(tmp_path, monkeypatch):
+    destination = tmp_path / "program.py"
+    destination.write_text("original", encoding="utf-8")
+
+    def fail_replace(*args):
+        raise PermissionError("file is locked")
+
+    monkeypatch.setattr("pynivo.core.files.documents.os.replace", fail_replace)
+    with pytest.raises(DocumentError, match="Could not save"):
+        DocumentService().save(destination, "replacement")
+    assert destination.read_text(encoding="utf-8") == "original"
+    assert list(tmp_path.glob("*.tmp")) == []

@@ -114,7 +114,47 @@ def test_runner_reports_unlaunchable_executable(tmp_path: Path) -> None:
 
     assert runner.run(request)
     QTimer.singleShot(5000, loop.quit)
-    loop.exec()
+    if not failures:
+        loop.exec()
 
     assert failures
     assert not runner.is_running
+
+
+def test_old_stop_callback_does_not_kill_restarted_program(tmp_path: Path) -> None:
+    script = tmp_path / "wait.py"
+    script.write_text("import time\ntime.sleep(0.3)\n", encoding="utf-8")
+    runner = ProcessRunner()
+    request = ExecutionRequest.for_script(Path(sys.executable), script)
+    assert run_and_wait(runner, request) == (0, False)
+    old_generation = runner._generation
+
+    def stale_stop():
+        runner._stopping = True
+        runner._kill_if_running(old_generation)
+        runner._stopping = False
+
+    runner.started.connect(stale_stop)
+    assert run_and_wait(runner, request) == (0, False)
+
+
+def test_runner_preserves_unicode_across_separate_reads(tmp_path: Path) -> None:
+    script = tmp_path / "split.py"
+    script.write_text(
+        "import os, time\n"
+        "for channel in (1, 2):\n"
+        "    for byte in 'سلام'.encode('utf-8'):\n"
+        "        os.write(channel, bytes([byte]))\n"
+        "        time.sleep(0.03)\n",
+        encoding="utf-8",
+    )
+    runner = ProcessRunner()
+    output, errors = [], []
+    runner.output_received.connect(output.append)
+    runner.error_received.connect(errors.append)
+    assert run_and_wait(runner, ExecutionRequest.for_script(Path(sys.executable), script)) == (
+        0,
+        False,
+    )
+    assert "".join(output) == "سلام"
+    assert "".join(errors) == "سلام"

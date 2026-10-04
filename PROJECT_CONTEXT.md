@@ -1,5 +1,29 @@
 # Project Context
 
+## Engineering audit update — 2026-10-05
+
+Baseline for this audit: `1ce8b7f`, clean working tree. See
+[ENGINEERING_AUDIT.md](ENGINEERING_AUDIT.md) for findings, scorecards, and limitations.
+The following 2026-10-01 assessment is retained as a historical snapshot; this update
+supersedes its resolved-defect and testing statements.
+
+Fixed diagnostic stderr bounds (250,000-character tail), recovery JSON shape/path
+validation, per-run Stop callback identity, split UTF-8 decoding, frozen builds falling
+back to their GUI executable, and imported/edited-source error navigation. Untouched
+starter tabs are now dirty and recoverable. Canceling window close preserves execution;
+recovery-clear errors on accepted close are logged. Atomic-save replacement failure is
+covered by a regression. Release tags are passed as environment data and both release
+paths specify checkout SHA; PFX/P12 are ignored. CI checks dependency consistency and
+builds wheels. Removed duplicate Hatchling forced inclusion after reproducing a wheel
+build failure; wheel curriculum resources were verified in an isolated interpreter.
+
+Local Python 3.13.15: 70 tests passed, one excluded; Ruff, pip consistency and wheel results are recorded
+in the audit. Full pytest still blocks inside `QProcess.start()` for an invalid executable;
+faulthandler localized the stall, but did not establish a root cause. The case remains
+in the suite and CI. No frozen installer, signing, clean-machine, or manual theme QA
+was completed. MainWindow remains the UI coordinator; no framework/dependency rewrite.
+
+
 Repository assessment: 2026-10-01. Baseline: `main` at `8f5a3a4`; working tree
 was clean before this documentation session. This is a dated snapshot, not a
 live release/CI status report.

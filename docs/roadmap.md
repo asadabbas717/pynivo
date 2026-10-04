@@ -28,8 +28,8 @@ proves a specific implementation is actively underway.
 
 ## Next
 
-- [ ] Bound diagnostic stderr while preserving useful traceback context.
-- [ ] Validate recovery JSON root/entry types and malformed valid JSON safely.
+- [x] Bound diagnostic stderr while preserving useful traceback context.
+- [x] Validate recovery JSON root/entry types and malformed valid JSON safely.
 - [ ] Test rapid stop/restart generation handling; review descendant cleanup and
   traceback filename validation before editor navigation.
 - [ ] Record clean Windows 10/11 install/uninstall, runtime, welcome, I/O, Stop,
@@ -47,7 +47,7 @@ proves a specific implementation is actively underway.
 
 - [ ] Centralize or validate repeated app version metadata before version bumps.
 - [ ] Use shared bracket colors; assess syntax-aware matching and large-file costs.
-- [ ] Guard frozen-app fallback when the private learner runtime is absent.
+- [x] Guard frozen-app fallback when the private learner runtime is absent.
 - [ ] Review smoke-mode timer/settings side effects and untouched starter-tab recovery.
 
 ## Testing improvements
@@ -55,7 +55,7 @@ proves a specific implementation is actively underway.
 - [ ] Investigate the local stall in `test_runner_reports_unlaunchable_executable`;
   the 2026-10-01 full run was interrupted, while the other 41 cases passed.
 
-- [ ] Add malformed-valid-JSON recovery and high-volume stderr regressions.
+- [x] Add malformed-valid-JSON recovery and high-volume stderr regressions.
 - [ ] Add MainWindow save/cancel/run, tab-switch, imported-error, and stop/restart tests.
 - [ ] Cover dialog find/replace, onboarding/settings, lesson/progress, recovery workflows.
 - [ ] Test checksum failure, ZIP traversal, distribution completeness, and smoke failures.
@@ -63,10 +63,9 @@ proves a specific implementation is actively underway.
 
 ## Security improvements
 
-- [ ] Add PFX/P12 and appropriate credential-file ignore patterns; none found tracked
-  in this review, but current patterns are incomplete.
-- [ ] Pass dispatch inputs through environment variables instead of interpolating
-  PowerShell source; verify signed-release tag/SHA targeting.
+- [x] Ignore PFX/P12 signing certificates; no tracked certificate found.
+- [x] Pass dispatch tags/SHA through environment variables; both releases target checkout SHA.
+- [ ] Verify any existing release tag resolves to the intended artifact commit.
 - [ ] Establish a private reporting channel (existing SECURITY.md expectation).
 - [ ] Configure trusted signing when available; preserve unsigned preview disclosures.
 - [ ] Preserve warnings about user privileges/inherited environments and private
@@ -79,3 +78,19 @@ proves a specific implementation is actively underway.
 - [ ] Keep handoff/test results current after significant sessions.
 - [ ] Record future accepted decisions with evidence/rationale; keep recommendations
   distinct from confirmed product requirements.
+
+## Audit progress — 2026-10-05
+
+- [x] Incremental UTF-8 output decoding and execution-generation Stop guard.
+- [x] Matching-file/unchanged-source traceback navigation and component tests.
+- [x] Untouched starter-buffer dirty state/recovery and atomic-save failure regression.
+- [x] Checksum/traversal/distribution-completeness packaging regressions.
+- [x] Reproduce and fix duplicate wheel resources; build wheels in CI.
+- [x] Dependency consistency gate and dated engineering scorecards.
+- [ ] Resolve invalid-executable stall inside QProcess.start; full local suite remains blocked.
+- [ ] Exercise real rapid Stop/restart over the complete timer interval, descendant cleanup,
+  and GUI shutdown with a live child; existing regression simulates a stale callback.
+- [ ] Lock tested release tooling/transitive dependencies and review reachable upstream advisories.
+- [ ] Revalidate reused portable artifacts before installer compilation.
+
+See [ENGINEERING_AUDIT.md](../ENGINEERING_AUDIT.md) and [testing](testing.md).

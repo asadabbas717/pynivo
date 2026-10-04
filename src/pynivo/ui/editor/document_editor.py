@@ -14,7 +14,7 @@ class DocumentEditor(CodeEditor):
         super().__init__()
         self.path = path
         self.setPlainText(text)
-        self.document().setModified(False)
+        self.document().setModified(path is None and bool(text))
         self.document().modificationChanged.connect(lambda _modified: self.title_changed.emit())
 
     @property

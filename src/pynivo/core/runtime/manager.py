@@ -87,14 +87,17 @@ class BundledRuntimeManager(SystemRuntimeManager):
 
 
 class RuntimeResolver:
-    """Prefer a bundled runtime, falling back to development Python when absent."""
+    """Prefer the bundle; only source runs may fall back to development Python."""
 
     def __init__(self, application_root: Path) -> None:
         self.bundled = BundledRuntimeManager(application_root)
         self.system = SystemRuntimeManager()
 
     def locate_runtime(self) -> Path | None:
-        return self.bundled.locate_runtime() or self.system.locate_runtime()
+        bundled = self.bundled.locate_runtime()
+        if bundled is not None or getattr(sys, "frozen", False):
+            return bundled
+        return self.system.locate_runtime()
 
     def validate_runtime(self, executable: Path) -> RuntimeInfo:
         bundled = self.bundled.locate_runtime()

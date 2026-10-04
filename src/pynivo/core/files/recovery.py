@@ -48,12 +48,17 @@ class RecoveryService:
             return ()
         try:
             payload = json.loads(self.snapshot_path.read_text(encoding="utf-8"))
-            if payload.get("version") != 1:
+            if not isinstance(payload, dict) or type(payload.get("version")) is not int:
+                return ()
+            if payload["version"] != 1 or not isinstance(payload.get("documents"), list):
                 return ()
             return tuple(
                 RecoveryDocument(path=item.get("path"), text=item["text"])
                 for item in payload.get("documents", [])
-                if isinstance(item, dict) and isinstance(item.get("text"), str)
+                if isinstance(item, dict)
+                and isinstance(item.get("text"), str)
+                and (item.get("path") is None or isinstance(item.get("path"), str))
+                and "\x00" not in (item.get("path") or "")
             )
         except (OSError, ValueError, TypeError, KeyError):
             return ()

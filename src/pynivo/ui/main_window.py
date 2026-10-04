@@ -43,6 +43,7 @@ from pynivo.ui.onboarding import should_show_welcome
 from pynivo.ui.themes import apply_theme
 
 LOGGER = logging.getLogger(__name__)
+MAXIMUM_STDERR_CHARACTERS = 250_000
 PYTHON_FILTER = "Python files (*.py);;All files (*)"
 WELCOME_CODE = """name = input("What's your name? ")
 print(f"Hello, {name}!")
@@ -362,14 +363,17 @@ class MainWindow(QMainWindow):
         return True
 
     def closeEvent(self, event: QCloseEvent) -> None:  # noqa: N802
-        if self.runner.is_running:
-            self.runner.stop()
         for index in range(self.tabs.count()):
             if not self.confirm_close(self.editor_at(index)):
                 event.ignore()
                 return
+        if self.runner.is_running:
+            self.runner.stop()
         self.settings.setValue("window/geometry", self.saveGeometry())
-        self.recovery.clear()
+        try:
+            self.recovery.clear()
+        except OSError as error:
+            LOGGER.warning("Could not clear recovery snapshot: %s", error)
         event.accept()
 
     def current_editor(self) -> DocumentEditor:
@@ -577,7 +581,14 @@ class MainWindow(QMainWindow):
                     self.error_analyzer.format_beginner_message(error), error=True
                 )
                 editor = self._running_editor()
-                if editor is not None and error.line_number:
+                if (
+                    editor is not None
+                    and error.line_number
+                    and error.filename
+                    and self._error_filename_matches_run(error.filename)
+                    and editor.toPlainText() == self.running_source_code
+                    and 1 <= error.line_number <= editor.document().blockCount()
+                ):
                     cursor = QTextCursor(
                         editor.document().findBlockByLineNumber(error.line_number - 1)
                     )
@@ -590,7 +601,7 @@ class MainWindow(QMainWindow):
         self._clear_running_document()
 
     def program_error_output(self, text: str) -> None:
-        self.stderr_buffer += text
+        self.stderr_buffer = (self.stderr_buffer + text)[-MAXIMUM_STDERR_CHARACTERS:]
         self.output_panel.append_output(text, error=True)
 
     def program_launch_failed(self, message: str) -> None:
@@ -599,6 +610,17 @@ class MainWindow(QMainWindow):
         self.output_panel.set_running(False)
         self.output_panel.append_output(f"Could not start Python: {message}\n", error=True)
         self._clear_running_document()
+
+    def _error_filename_matches_run(self, filename: str) -> bool:
+        if self.running_document_path is None:
+            return False
+        try:
+            path = Path(filename)
+            if not path.is_absolute():
+                path = self.running_document_path.parent / path
+            return path.resolve() == self.running_document_path
+        except (OSError, ValueError):
+            return False
 
     def _running_editor(self) -> DocumentEditor | None:
         if self.running_document_path is None:

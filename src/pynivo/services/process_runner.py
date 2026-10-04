@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import codecs
+
 from PySide6.QtCore import QObject, QProcess, QProcessEnvironment, QTimer, Signal
 
 from pynivo.core.execution import ExecutionRequest
@@ -26,6 +28,12 @@ class ProcessRunner(QObject):
         self.process.finished.connect(self._finished)
         self.process.errorOccurred.connect(self._process_error)
         self._stopping = False
+        self._generation = 0
+        self._reset_decoders()
+
+    def _reset_decoders(self) -> None:
+        self._stdout_decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
+        self._stderr_decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
 
     @property
     def is_running(self) -> bool:
@@ -35,6 +43,8 @@ class ProcessRunner(QObject):
         if self.is_running:
             return False
         self._stopping = False
+        self._generation += 1
+        self._reset_decoders()
         self.process.setWorkingDirectory(str(request.working_directory))
         environment = QProcessEnvironment.systemEnvironment()
         environment.insert("PYTHONIOENCODING", "utf-8")
@@ -55,27 +65,35 @@ class ProcessRunner(QObject):
         if not self.is_running:
             return False
         self._stopping = True
+        generation = self._generation
         self.process.terminate()
-        QTimer.singleShot(2000, self._kill_if_running)
+        QTimer.singleShot(2000, lambda: self._kill_if_running(generation))
         return True
 
-    def _kill_if_running(self) -> None:
-        if self.is_running:
+    def _kill_if_running(self, generation: int) -> None:
+        if generation == self._generation and self._stopping and self.is_running:
             self.process.kill()
 
     def _read_stdout(self) -> None:
-        text = bytes(self.process.readAllStandardOutput()).decode("utf-8", errors="replace")
+        text = self._stdout_decoder.decode(bytes(self.process.readAllStandardOutput()))
         if text:
             self.output_received.emit(text)
 
     def _read_stderr(self) -> None:
-        text = bytes(self.process.readAllStandardError()).decode("utf-8", errors="replace")
+        text = self._stderr_decoder.decode(bytes(self.process.readAllStandardError()))
         if text:
             self.error_received.emit(text)
 
     def _finished(self, exit_code: int, _exit_status: QProcess.ExitStatus) -> None:
         self._read_stdout()
         self._read_stderr()
+        for decoder, signal in (
+            (self._stdout_decoder, self.output_received),
+            (self._stderr_decoder, self.error_received),
+        ):
+            tail = decoder.decode(b"", final=True)
+            if tail:
+                signal.emit(tail)
         stopped = self._stopping
         self._stopping = False
         self.finished.emit(exit_code, stopped)

@@ -16,10 +16,18 @@ jobs:
     runs-on: windows-latest
     env:
       GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ inputs.tag }}
+      RELEASE_SHA: ${{ github.sha }}
       SIGNING_CERTIFICATE: ${{ secrets.WINDOWS_SIGNING_CERTIFICATE_BASE64 }}
       SIGNING_PASSWORD: ${{ secrets.WINDOWS_SIGNING_CERTIFICATE_PASSWORD }}
     steps:
       - uses: actions/checkout@v7
+      - name: Validate release tag
+        shell: pwsh
+        run: |
+          if ($env:RELEASE_TAG -cnotmatch '^v0\.1\.0$') {
+            throw "The signed release tag must match v0.1.0."
+          }
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
@@ -32,6 +40,7 @@ jobs:
           }
       - run: python -m pip install --upgrade pip
       - run: python -m pip install -e ".[dev]"
+      - run: python -m pip check
       - name: Run release checks
         run: |
           python -m ruff format --check .
@@ -69,9 +78,10 @@ jobs:
         shell: pwsh
         run: |
           $assets = (Get-ChildItem dist/installer/*).FullName
-          gh release create "${{ inputs.tag }}" $assets `
+          gh release create "$env:RELEASE_TAG" $assets `
+            --target "$env:RELEASE_SHA" `
             --draft --prerelease --generate-notes `
-            --title "PyNivo ${{ inputs.tag }} Preview"
+            --title "PyNivo $env:RELEASE_TAG Preview"
       - name: Remove signing certificate
         if: always()
         shell: pwsh

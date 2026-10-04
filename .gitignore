@@ -41,3 +41,8 @@ recovery/
 !.env.example
 *.pem
 *.key
+
+*.pfx
+*.p12
+
+.pytest-*-tmp/
